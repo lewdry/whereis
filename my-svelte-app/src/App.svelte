@@ -7,7 +7,7 @@
  let buildingEmojis = ["🏠", "🏢", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🕌" "🏠", "🏦"];
  let peopleEmojis = ["🧍‍♂️", "🧍‍♀️", "🚶‍♀️", "🚶‍♂️", "🚶‍♀️‍➡️", "🚶‍♂️‍➡️"];
  
- let missingPerson = {};
+let missingPerson = {};
 let firstName = "";
 let lastName = "";
 let isGameStarted = false;
@@ -77,7 +77,7 @@ function checkOverlap(pos1, pos2) {
 
 // Function to find a valid grid position
 function findValidGridPosition(existingPositions) {
-    let maxAttempts = 100;
+    let maxAttempts = 30;
     let attempts = 0;
     let newPos;
     
@@ -97,7 +97,7 @@ function findValidGridPosition(existingPositions) {
 
 // Function to find a valid free position
 function findValidFreePosition(existingPositions) {
-    let maxAttempts = 200;
+    let maxAttempts = 100;
     let attempts = 0;
     let newPos;
     
