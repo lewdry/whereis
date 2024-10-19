@@ -3,9 +3,9 @@
  
  let firstNames = ["Ali", "Ashley", "Ang", "Bradlee", "Bobbie", "Jose", "Wei", "Yan", "Andy", "Ying", "Jean", "Fransico", "Hong", "Fady", "Rich", "Rory", "Jorge", "Sammy"];
  let lastNames = ["Beaverton", "Affagato", "Consomme", "Vendetta", "Smiley", "Gorge", "Calamity", "Diamanté", "Blancmange", "Afterdinner", "Tobermory", "Futon", "Banquette", "Meringue", "Fingertip", "President", "Chapter", "Cookie", "Tennis-Smythe", "Badminton", "Flounder", "Crust", "Sandal"];
- let sceneryEmojis = ["🏡", "🌳", "🌲", "🌲", "🏡", "🌳", "🌲", "🌲", "🌳", "🏡", "🌳", "🌲", "🌲", "🌳", "🌲", "🌲"];
- let buildingEmojis = ["🏠", "🏢", "🏬", "🏛️", "🏭", "🏠", "🏢", "🏬", "🏛️", "🏠", "🏢", "🏬", "🏛️", "🏠", "🏬", "🏛️", "🏭", "🏠", "🏢", "🏬", "🏛️", "🏠", "🏢"];
- let peopleEmojis = ["🧍", "🧍‍♂️", "🧍‍♀️", "🚶‍♀️", "🚶‍♂️", "🚶", "🚶‍➡️", "🚶‍♀️‍➡️", "🚶‍♂️‍➡️"];
+ let sceneryEmojis = ["🏡", "🌳", "🌲", "🌲", "🏡", "🌳", "🌲", "🌲", "🌳", "🏡", "🌳", "🌲", "🌲", "🌳"];
+ let buildingEmojis = ["🏠", "🏢", "🏬", "🏛️", "🏭", "🏠", "🏢", "🏬", "🏛️", "🏠", "🏢", "🏬", "🏛️", "🏠", "🏬", "🏛️", "🏭", "🏠", "🏦"];
+ let peopleEmojis = ["🧍‍♂️", "🧍‍♀️", "🚶‍♀️", "🚶‍♂️", "🚶‍♀️‍➡️", "🚶‍♂️‍➡️"];
  
  let missingPerson = {};
 let firstName = "";
