@@ -3,8 +3,8 @@
  
  let firstNames = ["Ali", "Ashley", "Ang", "Bradlee", "Bobbie", "Jose", "Wei", "Yan", "Andy", "Ying", "Jean", "Fransico", "Hong", "Fady", "Rich", "Rory", "Jorge", "Sammy"];
  let lastNames = ["Beaverton", "Affagato", "Consomme", "Vendetta", "Smiley", "Gorge", "Calamity", "Diamanté", "Blancmange", "Afterdinner", "Tobermory", "Futon", "Banquette", "Meringue", "Fingertip", "President", "Chapter", "Cookie", "Tennis-Smythe", "Badminton", "Flounder", "Crust", "Sandal"];
- let sceneryEmojis = ["🏡", "🌳", "🌲", "🌲", "🏡", "🌳", "🌲", "🌲", "🌳", "🏡", "🌳", "🌲", "🌲", "🌳"];
- let buildingEmojis = ["🏠", "🏢", "🏬", "🏛️", "🏭", "🏠", "🏢", "🏬", "🏛️", "🏠", "🏢", "🏬", "🏛️", "🏠", "🏬", "🏛️", "🏭", "🏠", "🏦"];
+ let sceneryEmojis = ["🏡", "🌳", "🌲", "🌲", "🏡", "🌳", "🌲", "🌲", "🌳", "🏡"];
+ let buildingEmojis = ["🏠", "🏢", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🕌" "🏠", "🏦"];
  let peopleEmojis = ["🧍‍♂️", "🧍‍♀️", "🚶‍♀️", "🚶‍♂️", "🚶‍♀️‍➡️", "🚶‍♂️‍➡️"];
  
  let missingPerson = {};
@@ -17,7 +17,7 @@ let peopleOnScreen = [];
 
 // Constants for collision detection and grid
 const EMOJI_SIZE = 30; // Size in pixels
-const BUFFER = 24; // Extra space between emojis
+const BUFFER = 10; // Extra space between emojis
 const TOTAL_SPACE = EMOJI_SIZE + BUFFER;
 const GRID_SIZE = 24; // Size of grid cells in pixels
 
@@ -97,7 +97,7 @@ function findValidGridPosition(existingPositions) {
 
 // Function to find a valid free position
 function findValidFreePosition(existingPositions) {
-    let maxAttempts = 100;
+    let maxAttempts = 200;
     let attempts = 0;
     let newPos;
     
