@@ -3,8 +3,8 @@
  
  let firstNames = ["Ali", "Ashley", "Ang", "Bradlee", "Bobbie", "Jose", "Wei", "Yan", "Andy", "Ying", "Jean", "Fransico", "Hong", "Fady", "Rich", "Rory", "Jorge", "Sammy"];
  let lastNames = ["Beaverton", "Affagato", "Consomme", "Vendetta", "Smiley", "Gorge", "Calamity", "Diamanté", "Blancmange", "Afterdinner", "Tobermory", "Futon", "Banquette", "Meringue", "Fingertip", "President", "Chapter", "Cookie", "Tennis-Smythe", "Badminton", "Flounder", "Crust", "Sandal"];
- let sceneryEmojis = ["🏡", "🌳", "🌲", "🌲", "🏡", "🌳", "🌲", "🌲", "🌳", "🏡"];
- let buildingEmojis = ["🏠", "🏢", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🕌", "🏠", "🏦"];
+ let sceneryEmojis = ["🌳", "🌲", "🌳", "🌲", "🌳"];
+ let buildingEmojis = ["🏠", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🕌", "🏦"];
  let peopleEmojis = ["🧍‍♂️", "🧍‍♀️", "🚶‍♀️", "🚶‍♂️", "🚶‍♀️‍➡️", "🚶‍♂️‍➡️"];
  
 let missingPerson = {};
@@ -19,7 +19,7 @@ let peopleOnScreen = [];
 const EMOJI_SIZE = 30; // Size in pixels
 const BUFFER = 10; // Extra space between emojis
 const TOTAL_SPACE = EMOJI_SIZE + BUFFER;
-const GRID_SIZE = 24; // Size of grid cells in pixels
+const GRID_SIZE = 20; // Size of grid cells in pixels
 
 // Function to convert pixel values to percentage
 function pxToPercent(px, isWidth = true) {
@@ -77,7 +77,7 @@ function checkOverlap(pos1, pos2) {
 
 // Function to find a valid grid position
 function findValidGridPosition(existingPositions) {
-    let maxAttempts = 30;
+    let maxAttempts = 10;
     let attempts = 0;
     let newPos;
     
@@ -97,7 +97,7 @@ function findValidGridPosition(existingPositions) {
 
 // Function to find a valid free position
 function findValidFreePosition(existingPositions) {
-    let maxAttempts = 100;
+    let maxAttempts = 200;
     let attempts = 0;
     let newPos;
     
