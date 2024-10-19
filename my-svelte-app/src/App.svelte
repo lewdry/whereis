@@ -17,9 +17,9 @@ let peopleOnScreen = [];
 
 // Constants for collision detection and grid
 const EMOJI_SIZE = 30; // Size in pixels
-const BUFFER = 40; // Extra space between emojis
+const BUFFER = 24; // Extra space between emojis
 const TOTAL_SPACE = EMOJI_SIZE + BUFFER;
-const GRID_SIZE = 60; // Size of grid cells in pixels
+const GRID_SIZE = 24; // Size of grid cells in pixels
 
 // Function to convert pixel values to percentage
 function pxToPercent(px, isWidth = true) {
