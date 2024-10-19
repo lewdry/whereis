@@ -77,7 +77,7 @@ function checkOverlap(pos1, pos2) {
 
 // Function to find a valid grid position
 function findValidGridPosition(existingPositions) {
-    let maxAttempts = 10;
+    let maxAttempts = 50;
     let attempts = 0;
     let newPos;
     
@@ -97,7 +97,7 @@ function findValidGridPosition(existingPositions) {
 
 // Function to find a valid free position
 function findValidFreePosition(existingPositions) {
-    let maxAttempts = 200;
+    let maxAttempts = 300;
     let attempts = 0;
     let newPos;
     
@@ -239,7 +239,7 @@ $: winMessage = isGameWon ? `Congratulations! You found ${firstName} ${lastName}
 .game-screen {
     position: relative;
     width: 100%;
-    height: 100vh;
+    height: 80vh;
     overflow: hidden;
     background-color: #ffffff;
     display: flex;
@@ -316,14 +316,14 @@ button:hover {
 
 @media (max-width: 768px) {
     .background-emoji, .person-emoji {
-        font-size: 8vw; 
+        font-size: 7vw; 
     }
 }
 
 /* Styles for mobile phones */
 @media (max-width: 480px) {
     .background-emoji, .person-emoji {
-        font-size: 8vw; /* Adjust as needed for mobile */
+        font-size: 7vw; /* Adjust as needed for mobile */
     }
 }
 </style>
