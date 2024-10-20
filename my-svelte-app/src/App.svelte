@@ -16,8 +16,8 @@ let backgroundEmojis = [];
 let peopleOnScreen = [];
 
 // Constants for collision detection and grid
-const EMOJI_SIZE = 30; // Size in pixels
-const BUFFER = 0; // Extra space between emojis
+const EMOJI_SIZE = 10; // Size in pixels
+const BUFFER = 10; // Extra space between emojis
 const TOTAL_SPACE = EMOJI_SIZE + BUFFER;
 const GRID_SIZE = 10; // Size of grid cells in pixels
 
@@ -77,7 +77,7 @@ function checkOverlap(pos1, pos2) {
 
 // Function to find a valid grid position
 function findValidGridPosition(existingPositions) {
-    let maxAttempts = 100;
+    let maxAttempts = 200;
     let attempts = 0;
     let newPos;
     
@@ -97,7 +97,7 @@ function findValidGridPosition(existingPositions) {
 
 // Function to find a valid free position
 function findValidFreePosition(existingPositions) {
-    let maxAttempts = 500;
+    let maxAttempts = 1000;
     let attempts = 0;
     let newPos;
     
