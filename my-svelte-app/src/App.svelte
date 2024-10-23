@@ -21,15 +21,15 @@
     // Responsive sizing
     const getEmojiSize = () => {
         const width = window.innerWidth;
-        if (width <= 480) return { size: 48, fontSize: '8vw' };
-        if (width <= 768) return { size: 48, fontSize: '6vw' };
+        if (width <= 480) return { size: 36, fontSize: '8vw' };
+        if (width <= 768) return { size: 40, fontSize: '6vw' };
         return { size: 48, fontSize: '5vw' };
     };
     
     // Updated position generation with proper bounds
     function generatePosition(isBackground = false) {
         const { size } = getEmojiSize();
-        const padding = size / 2;
+        const padding = size / 4;
         
         // Get available space
         const maxX = gameAreaWidth - size - padding;
@@ -37,7 +37,7 @@
         
         // For background items, use a grid-like positioning
         if (isBackground) {
-            const gridSize = size * 1.5;
+            const gridSize = size * 1; //was 1.5
             const cols = Math.floor(maxX / gridSize);
             const rows = Math.floor(maxY / gridSize);
             
