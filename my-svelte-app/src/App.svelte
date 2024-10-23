@@ -21,9 +21,9 @@
     // Responsive sizing
     const getEmojiSize = () => {
         const width = window.innerWidth;
-        if (width <= 480) return { size: 32, fontSize: '6vw' };
-        if (width <= 768) return { size: 40, fontSize: '4vw' };
-        return { size: 48, fontSize: '3vw' };
+        if (width <= 480) return { size: 32, fontSize: '8vw' };
+        if (width <= 768) return { size: 40, fontSize: '6vw' };
+        return { size: 48, fontSize: '5vw' };
     };
     
     // Updated position generation with proper bounds
