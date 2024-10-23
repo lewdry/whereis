@@ -1,10 +1,10 @@
 <script>
     import { onMount, tick } from 'svelte';
     
-    let firstNames = ["Ali", "Ashley", "Ang", "Bradlee", "Bobbie", "Jose", "Wei", "Yan", "Andy", "Ying", "Jean", "Fransico", "Hong", "Fady", "Rich", "Rory", "Jorge", "Sammy"];
-    let lastNames = ["Beaverton", "Affagato", "Consomme", "Vendetta", "Smiley", "Gorge", "Keyboard", "Diamanté", "Blancmange", "Afterdinner", "Tobermory", "Futon", "Banquette", "Meringue", "Fingertip", "President", "Chapter", "Cookie", "Tennis-Smythe", "Badminton", "Flounder", "Crust", "Sandal", "Greenhouse", "Bassoon", "Foothold"];
-    let sceneryEmojis = ["🌳", "🌲", "🎄", "🌴"];
-    let buildingEmojis = ["🏠", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🕌", "🏦", "🏟️", "🏫"];
+    let firstNames = ["Ali", "Ashley", "Ang", "Bradlee", "Bobbie", "Jose", "Wei", "Yan", "Andy", "Ying", "Jean", "Fransico", "Hong", "Fady", "Rich", "Rory", "Jo", "Sammy", "Philly", "Mal", "Tippy", "Sal", "Barb"];
+    let lastNames = ["Beaverton", "Affagato", "Consomme", "Vendetta", "Smiley", "Gorge", "Keyboard", "Diamanté", "Blancmange", "Afterdinner", "Tobermory", "Futon", "Banquette", "Meringue", "Fingertip", "President", "Chapter", "Cookie", "Tennis-Smythe", "Badminton", "Flounder", "Crust", "Sandal", "Greenhouse", "Bassoon", "Foothold", "Mouthbreath", "Rowboat", "Childsplay", "Flatbread", "Legume"];
+    let sceneryEmojis = ["🌳", "🌲", "🎄", "🌴", "⛩️", "🗿", "🗼", "🎡", "⛲️"];
+    let buildingEmojis = ["🏠", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🕌", "🏦", "🏟️", "🏫", "🏯", "🏣", "🏪", "🏤"];
     let peopleEmojis = ["🧍‍♂️", "🧍‍♀️", "💃", "🕺", "🧜", "🧘", "🤾", "👨‍🦼", "👩‍🦯‍➡️", "⛹️‍♀️", "🧚", "🤺", "🤸‍♀️", "🏌️‍♂️", "🪂", "🏇", "🏋️‍♀️"];
     
     let missingPerson = {};
@@ -21,8 +21,8 @@
     // Responsive sizing
     const getEmojiSize = () => {
         const width = window.innerWidth;
-        if (width <= 480) return { size: 32, fontSize: '8vw' };
-        if (width <= 768) return { size: 40, fontSize: '6vw' };
+        if (width <= 480) return { size: 48, fontSize: '8vw' };
+        if (width <= 768) return { size: 48, fontSize: '6vw' };
         return { size: 48, fontSize: '5vw' };
     };
     
@@ -65,7 +65,7 @@
     
     function findValidPosition(existingPositions, isBackground = false) {
         let attempts = 0;
-        const maxAttempts = 100;
+        const maxAttempts = 500;
         
         while (attempts < maxAttempts) {
             const position = generatePosition(isBackground);
@@ -240,7 +240,7 @@
     <style>
     .splash-screen, .win-screen {
     text-align: center;
-    padding: 20px;
+    padding: 0px;
     max-width: 100%;
     box-sizing: border-box;
     display: flex;
@@ -298,7 +298,7 @@
     }
     
     .emoji {
-        font-size: 5rem;
+        font-size: 6rem;
         margin: 20px 0;
     }
     
@@ -318,6 +318,7 @@
         margin-top: 20px;
         padding: 10px 20px;
         font-size: clamp(1rem, 2vw, 1.2rem);
+        background-color: #f0f0f0;
         border: 2px solid #ccc;
         border-radius: 5px;
         cursor: pointer;
@@ -340,7 +341,8 @@
     }
     
     .new-game-btn:hover {
-        background-color: #45a049;
+        background-color: #f0f0f0;
+        border-color: #999;
     }
     
     .highlight {
@@ -366,16 +368,16 @@
     }
     
     @media (max-width: 480px) {
-    .text-container {
-        padding: 0 10px;
-    }
+        .text-container {
+            padding: 0 10px;
+        }
 
-    h1 {
-        font-size: clamp(1.2rem, 5vw, 1.5rem);
-    }
-    
-    .background-emoji, .person-emoji {
-        font-size: 6vw;
-    }
-    }
-    </style>
+        h1 {
+            font-size: clamp(1.2rem, 5vw, 1.5rem);
+        }
+        
+        .background-emoji, .person-emoji {
+            font-size: 6vw;
+        }
+        }
+        </style>
