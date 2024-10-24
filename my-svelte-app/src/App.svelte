@@ -267,7 +267,8 @@ function findValidPosition(existingPositions, isBackground = false) {
     .container {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex start;
+    padding-top: 20px;
     width: 100%;
     height: 100vh; 
     background-color: #ffffff;
