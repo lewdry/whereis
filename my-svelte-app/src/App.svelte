@@ -28,57 +28,76 @@
     
     // Updated position generation with proper bounds
     function generatePosition(isBackground = false) {
-        const { size } = getEmojiSize();
-        const padding = size / 2;
+    const { size } = getEmojiSize();
+    const sidePadding = size / 2;
+    const bottomPadding = isBackground ? size / 2 : size; // Extra bottom padding for people
+    
+    // Get available space with safe bounds
+    const maxX = gameAreaWidth - sidePadding * 2;
+    const maxY = gameAreaHeight - (sidePadding + bottomPadding); // Asymmetric padding for bottom
+    
+    // For background items, use grid-like positioning with protected edges
+    if (isBackground) {
+        const gridSize = size * 1.2;
+        const cols = Math.floor(maxX / gridSize);
+        const rows = Math.floor(maxY / gridSize);
         
-        // Get available space
-        const maxX = gameAreaWidth - size - padding;
-        const maxY = gameAreaHeight - size - padding;
+        const col = Math.floor(Math.random() * cols);
+        const row = Math.floor(Math.random() * rows);
         
-        // For background items, use a grid-like positioning
-        if (isBackground) {
-            const gridSize = size * 1; //was 1.5
-            const cols = Math.floor(maxX / gridSize);
-            const rows = Math.floor(maxY / gridSize);
-            
-            const col = Math.floor(Math.random() * cols);
-            const row = Math.floor(Math.random() * rows);
-            
-            return {
-                x: (padding + col * gridSize) / gameAreaWidth * 100,
-                y: (padding + row * gridSize) / gameAreaHeight * 100
-            };
-        }
-        
-        // For people, use more random positioning
         return {
-            x: (padding + Math.random() * (maxX - padding)) / gameAreaWidth * 100,
-            y: (padding + Math.random() * (maxY - padding)) / gameAreaHeight * 100
+            x: (sidePadding + col * gridSize) / gameAreaWidth * 100,
+            y: (sidePadding + row * gridSize) / gameAreaHeight * 100
         };
     }
     
-    function checkOverlap(pos1, pos2, minDistance = 10) {
-        const dx = Math.abs(pos1.x - pos2.x);
-        const dy = Math.abs(pos1.y - pos2.y);
-        return dx < minDistance && dy < minDistance;
-    }
+    // For people, use random positioning with protected edges and extra bottom padding
+    return {
+        x: (sidePadding + Math.random() * maxX) / gameAreaWidth * 100,
+        y: (sidePadding + Math.random() * (maxY - sidePadding)) / gameAreaHeight * 100 // Reduced height range for people
+    };
+}
+
+// Updated overlap check
+function checkOverlap(pos1, pos2, minDistance = 8) {
+    const dx = Math.abs(pos1.x - pos2.x);
+    const dy = Math.abs(pos1.y - pos2.y);
+    return dx < minDistance && dy < minDistance;
+}
+
+// Updated position finding with edge protection
+function findValidPosition(existingPositions, isBackground = false) {
+    let attempts = 0;
+    const maxAttempts = 500;
     
-    function findValidPosition(existingPositions, isBackground = false) {
-        let attempts = 0;
-        const maxAttempts = 500;
+    while (attempts < maxAttempts) {
+        const position = generatePosition(isBackground);
         
-        while (attempts < maxAttempts) {
-            const position = generatePosition(isBackground);
-            const hasOverlap = existingPositions.some(pos => 
-                checkOverlap(position, pos, isBackground ? 15 : 10)
-            );
-            
-            if (!hasOverlap) return position;
+        // Enhanced bounds checking
+        const { size } = getEmojiSize();
+        const bottomLimit = isBackground ? 95 : 90; // More restrictive bottom limit for people
+        
+        if (position.x < 0 || position.x > 100 || position.y < 0 || position.y > bottomLimit) {
             attempts++;
+            continue;
         }
         
-        return generatePosition(isBackground);
+        const hasOverlap = existingPositions.some(pos => 
+            checkOverlap(position, pos, isBackground ? 12 : 8)
+        );
+        
+        if (!hasOverlap) return position;
+        attempts++;
     }
+    
+    // If we couldn't find a valid position, return a safe fallback
+    const fallbackPosition = generatePosition(isBackground);
+    const bottomLimit = isBackground ? 95 : 90;
+    return {
+        x: Math.min(Math.max(fallbackPosition.x, 5), 95),
+        y: Math.min(Math.max(fallbackPosition.y, 5), bottomLimit)
+    };
+}
     
     function initializeGame() {
         firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
@@ -323,7 +342,7 @@
     }
     
     h1 {
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-size: clamp(1.5rem, 4vw, 2rem);
     margin: 0;
     padding: 10px;
     line-height: 1.4;
@@ -340,6 +359,7 @@
         font-size: clamp(1rem, 2vw, 1.2rem);
         background-color: #f0f0f0;
         border: 2px solid #ccc;
+        color: #000000;
         border-radius: 5px;
         cursor: pointer;
         transition: all 0.25s;
