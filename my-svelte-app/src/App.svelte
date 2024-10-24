@@ -227,7 +227,11 @@ function findValidPosition(existingPositions, isBackground = false) {
     <!-- Game screen -->
     {#if isGameStarted && !isGameWon}
     <div class="container">
-        <div class="game-screen">
+        <div 
+            class="game-screen"
+            on:touchmove|preventDefault={() => {}}
+            on:touchstart|preventDefault={() => {}}
+            on:touchend|preventDefault={() => {}}>
             {#if isInitialized}
                 {#each backgroundEmojis as emoji}
                 <div 
@@ -241,7 +245,8 @@ function findValidPosition(existingPositions, isBackground = false) {
                 <button 
                     class="person-emoji"
                     style="top: {person.y}%; left: {person.x}%;"
-                    on:click={() => checkForWin(person)}>
+                    on:click={() => checkForWin(person)}
+                    on:touchstart|preventDefault={() => checkForWin(person)}>
                     {person.emoji}
                 </button>
                 {/each}
@@ -277,7 +282,6 @@ function findValidPosition(existingPositions, isBackground = false) {
     .splash-screen, .win-screen, .game-screen {
         text-align: center;
         padding: 0px;
-        max-width: 100%;
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
@@ -289,9 +293,12 @@ function findValidPosition(existingPositions, isBackground = false) {
         max-width: 400px;
         max-height: 700px;
         aspect-ratio: 4 / 7;
-        border: 0.1em solid black;
-        border-radius: 2em;
+        border: 2px solid black;
+        border-radius: 1em;
         overflow: hidden;
+        touch-action: none; /* Prevents default touch behaviors */
+        -webkit-user-select: none; /* Prevents text selection on iOS */
+        user-select: none;
     }
 
     .text-container {
