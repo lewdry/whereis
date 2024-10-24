@@ -29,7 +29,7 @@
     // Updated position generation with proper bounds
     function generatePosition(isBackground = false) {
         const { size } = getEmojiSize();
-        const padding = size / 4;
+        const padding = size / 2;
         
         // Get available space
         const maxX = gameAreaWidth - size - padding;
@@ -194,61 +194,85 @@
     
     <!-- Splash screen -->
     {#if !isGameStarted}
-    <div class="splash-screen">
-        <div class="text-container">
-            <h1><span class="highlight">Where is</span><br><span class="name">{firstName} {lastName}</span>?</h1>
+    <div class="container">
+        <div class="splash-screen">
+            <div class="text-container">
+                <h1><span class="highlight">Where is</span><br><span class="name">{firstName} {lastName}</span>?</h1>
+            </div>
+            <div class="emoji">{missingPerson.emoji}</div>
+            <button on:click={startGame}>Search</button>
         </div>
-        <div class="emoji">{missingPerson.emoji}</div>
-        <button on:click={startGame}>Search</button>
     </div>
     {/if}
     
     <!-- Game screen -->
     {#if isGameStarted && !isGameWon}
-    <div class="game-screen">
-        {#if isInitialized}
-            {#each backgroundEmojis as emoji}
-            <div 
-                class="background-emoji" 
-                style="top: {emoji.y}%; left: {emoji.x}%;">
-                {emoji.emoji}
-            </div>
-            {/each}
-            
-            {#each peopleOnScreen as person}
-            <button 
-                class="person-emoji"
-                style="top: {person.y}%; left: {person.x}%;"
-                on:click={() => checkForWin(person)}>
-                {person.emoji}
-            </button>
-            {/each}
-        {/if}
+    <div class="container">
+        <div class="game-screen">
+            {#if isInitialized}
+                {#each backgroundEmojis as emoji}
+                <div 
+                    class="background-emoji" 
+                    style="top: {emoji.y}%; left: {emoji.x}%;">
+                    {emoji.emoji}
+                </div>
+                {/each}
+                
+                {#each peopleOnScreen as person}
+                <button 
+                    class="person-emoji"
+                    style="top: {person.y}%; left: {person.x}%;"
+                    on:click={() => checkForWin(person)}>
+                    {person.emoji}
+                </button>
+                {/each}
+            {/if}
+        </div>
     </div>
     {/if}
     
+    
     <!-- Win screen -->
     {#if isGameWon}
-    <div class="win-screen">
-        <div class="text-container">
-            <h1><span class="highlight">Congratulations!</span><br>You found<br><span class="name">{firstName} {lastName}</span>!</h1>
+    <div class="container">
+        <div class="win-screen">
+            <div class="text-container">
+                <h1><span class="highlight">Congratulations!</span><br>You found<br><span class="name">{firstName} {lastName}</span>!</h1>
+            </div>
+            <button class="new-game-btn" on:click={startNewGame}>New Game</button>
         </div>
-        <button class="new-game-btn" on:click={startNewGame}>New Game</button>
     </div>
     {/if}
     
     <style>
-    .splash-screen, .win-screen {
-    text-align: center;
-    padding: 0px;
-    max-width: 100%;
-    box-sizing: border-box;
+    .container {
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
-    min-height: 50vh;
+    align-items: center;
+    width: 100%;
+    height: 100vh; 
+    background-color: #ffffff;
 }
+
+    .splash-screen, .win-screen, .game-screen {
+        text-align: center;
+        padding: 0px;
+        max-width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 50vh;
+        width: 80%;
+        height: 80%;
+        max-width: 400px;
+        max-height: 700px;
+        aspect-ratio: 4 / 7;
+        border: 0.1em solid black;
+        border-radius: 2em;
+        overflow: hidden;
+    }
 
     .text-container {
         width: 100%;
@@ -259,13 +283,9 @@
     }
     
     .game-screen {
-        position: relative;
-        width: 100%;
-        height: 80vh;
-        overflow: hidden;
-        background-color: #ffffff;
+    position: relative;
     }
-    
+
     .background-emoji {
         position: absolute;
         font-size: 3vw;
