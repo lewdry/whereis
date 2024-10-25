@@ -3,10 +3,10 @@
     import winSoundFile from './assets/win.mp3'; 
     const winSound = new Audio(winSoundFile);
     
-    let firstNames = ["Ali", "Ashley", "Ang", "Bradlee", "Bobbie", "Jose", "Wei", "Yan", "Andy", "Ying", "Jean", "Fransico", "Hong", "Fady", "Rich", "Rory", "Jo", "Sammy", "Philly", "Mal", "Tippy", "Sal", "Barb"];
-    let lastNames = ["Beaverton", "Affagato", "Consomme", "Vendetta", "Smiley", "Gorge", "Keyboard", "Diamanté", "Blancmange", "Afterdinner", "Tobermory", "Futon", "Banquette", "Meringue", "Fingertip", "President", "Chapter", "Cookie", "Tennis-Smythe", "Badminton", "Flounder", "Crust", "Sandal", "Greenhouse", "Bassoon", "Foothold", "Mouthbreath", "Rowboat", "Childsplay", "Flatbread", "Legume"];
-    let sceneryEmojis = ["🌳", "🌲", "🎄", "🌴", "⛩️", "🗿", "🗼", "🎡", "⛲️", "🌳", "🌲", "🌴", "🎪"];
-    let buildingEmojis = ["🏠", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🏦", "🏟️", "🏫", "🏯", "🏣", "🏪", "🏤", "🏠"];
+    let firstNames = ["Ali", "Ashley", "Ang", "Bradlee", "Bobbie", "Wei", "Yan", "Andy", "Ying", "Jean", "Franc", "Hong", "Rich", "Rory", "Jo", "Sammy", "Philly", "Mal", "Tippy", "Sal", "Barb", "River", "Gio", "Leith", "Leaf", "Paris", "Axel", "Yun", "Cameron", "Avery", "Ainsley", "Adrian", "Ari", "Charlie", "Ellis", "Dylan", "Drew", "Jordan", "Riley", "Morgan", "Taylor", "Jesse", "Robin", "Jo", "Jules", "Terri", "Ridley", "Sage", "Blake", "Ira", "Basil", "Scout", "Ollie", "Devon", "Shannon", "Birch", "Pat"];
+    let lastNames = ["Beaverton", "Affagato", "Consommé", "Vendetta", "Smiley", "Gorgon", "Keyboard", "Diamanté", "Blancmange", "Afterdinner", "Tobermory", "Futon", "Banquette", "Meringue", "Fingertip", "President", "Hotdog", "Cookie", "Tennis-Smythe", "Badminton", "Flounder", "Stuffed-Crust", "Sandal", "Greenhouse", "Bassoon", "Foothold", "Mouthbreath", "Rowboat", "Childsplay", "Flatbread", "Legume", "Broadbean", "Sneaker", "Turtle", "Bouquet", "Salmon", "Goldleaf", "Croissant", "Crossbow", "Trolley"];
+    let sceneryEmojis = ["🌳", "🌲", "🎄", "🌴", "⛩️", "🗿", "🗼", "🎡", "⛲️", "🌳", "🌲", "🌴", "🌳", "🌲", "🌴", "🌵", "🌵"];
+    let buildingEmojis = ["🏠", "🏡", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🏦", "🏟️", "🏫", "🏯", "🏣", "🏪", "🏤", "🏠", "🎪", "🛖", "🏗️", "🏘️", "⛪️"];
     let peopleEmojis = ["🧍‍♂️", "🧍‍♀️", "💃", "🕺", "🧜", "🧘‍♀️", "🧘‍♂️", "🤾‍♀️", "🤾‍♂️", "👨‍🦼", "👩‍🦽‍➡️", "👩‍🦯‍➡️", "👨‍🦯", "⛹️‍♀️", "⛹️‍♂️", "🧚‍♀️", "🧚‍♂️", "🤺", "🤸‍♀️", "🤸‍♂️", "🏌️‍♂️", "🏌️‍♀️", "🪂", "🏇", "🏋️‍♂️", "🏋️‍♀️", "🏂", "🚴‍♀️", "🚴‍♂️"];
     
     let missingPerson = {};
@@ -174,7 +174,7 @@ function findValidPosition(existingPositions, isBackground = false) {
     const shuffledPeople = [...peopleEmojis]
         .filter(emoji => emoji !== missingPerson.emoji)
         .sort(() => Math.random() - 0.5)
-        .slice(0, 7);
+        .slice(0, 5);
 
     const otherPeople = shuffledPeople.map(emoji => {
         const position = findValidPosition(allPositions, false);
@@ -410,7 +410,7 @@ function findValidPosition(existingPositions, isBackground = false) {
     }
     
     h1 {
-    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-size: 1.4rem;
     margin: 0;
     padding: 10px;
     line-height: 1.4;
@@ -471,22 +471,7 @@ function findValidPosition(existingPositions, isBackground = false) {
         }
         
         .emoji {
-            font-size: clamp(3rem, 10vw, 5rem);
+            font-size: clamp(3rem, 4rem, 5rem);
         }
     }
-    /*
-    @media (max-width: 480px) {
-        .text-container {
-            padding: 0 10px;
-        }
-
-        h1 {
-            font-size: clamp(1.2rem, 5vw, 1.5rem);
-        }
-        
-        .background-emoji, .person-emoji {
-            font-size: 2.5rem;
-        } 
-        */
-
         </style>
