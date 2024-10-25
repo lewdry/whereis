@@ -23,7 +23,7 @@
     // Responsive sizing
     const getEmojiSize = () => {
         const width = window.innerWidth;
-        if (width <= 768) return { size: 40};
+        if (width <= 768) return { size: 38};
         return { size: 48, fontSize: '5vw' };
     };
     
