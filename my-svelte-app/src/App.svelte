@@ -5,9 +5,9 @@
     
     let firstNames = ["Ali", "Ashley", "Ang", "Bradlee", "Bobbie", "Jose", "Wei", "Yan", "Andy", "Ying", "Jean", "Fransico", "Hong", "Fady", "Rich", "Rory", "Jo", "Sammy", "Philly", "Mal", "Tippy", "Sal", "Barb"];
     let lastNames = ["Beaverton", "Affagato", "Consomme", "Vendetta", "Smiley", "Gorge", "Keyboard", "Diamanté", "Blancmange", "Afterdinner", "Tobermory", "Futon", "Banquette", "Meringue", "Fingertip", "President", "Chapter", "Cookie", "Tennis-Smythe", "Badminton", "Flounder", "Crust", "Sandal", "Greenhouse", "Bassoon", "Foothold", "Mouthbreath", "Rowboat", "Childsplay", "Flatbread", "Legume"];
-    let sceneryEmojis = ["🌳", "🌲", "🎄", "🌴", "⛩️", "🗿", "🗼", "🎡", "⛲️", "🌳", "🌲", "🌴"];
-    let buildingEmojis = ["🏠", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🕌", "🏦", "🏟️", "🏫", "🏯", "🏣", "🏪", "🏤", "🏠"];
-    let peopleEmojis = ["🧍‍♂️", "🧍‍♀️", "💃", "🕺", "🧜", "🧘", "🤾", "👨‍🦼", "👩‍🦯‍➡️", "⛹️‍♀️", "🧚", "🤺", "🤸‍♀️", "🏌️‍♂️", "🪂", "🏇", "🏋️‍♀️"];
+    let sceneryEmojis = ["🌳", "🌲", "🎄", "🌴", "⛩️", "🗿", "🗼", "🎡", "⛲️", "🌳", "🌲", "🌴", "🎪"];
+    let buildingEmojis = ["🏠", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🏦", "🏟️", "🏫", "🏯", "🏣", "🏪", "🏤", "🏠"];
+    let peopleEmojis = ["🧍‍♂️", "🧍‍♀️", "💃", "🕺", "🧜", "🧘‍♀️", "🧘‍♂️", "🤾‍♀️", "🤾‍♂️", "👨‍🦼", "👩‍🦽‍➡️", "👩‍🦯‍➡️", "👨‍🦯", "⛹️‍♀️", "⛹️‍♂️", "🧚‍♀️", "🧚‍♂️", "🤺", "🤸‍♀️", "🤸‍♂️", "🏌️‍♂️", "🏌️‍♀️", "🪂", "🏇", "🏋️‍♂️", "🏋️‍♀️", "🏂", "🚴‍♀️", "🚴‍♂️"];
     
     let missingPerson = {};
     let firstName = "";
@@ -467,7 +467,7 @@ function findValidPosition(existingPositions, isBackground = false) {
 
     @media (max-width: 768px) {
         .background-emoji, .person-emoji {
-            font-size: 2.2rem;
+            font-size: 2rem;
         }
         
         .emoji {
