@@ -23,8 +23,7 @@
     // Responsive sizing
     const getEmojiSize = () => {
         const width = window.innerWidth;
-        /* if (width <= 480) return { size: 36, fontSize: '8vw' };
-        if (width <= 768) return { size: 48, fontSize: '8vw' }; */
+        if (width <= 768) return { size: 40};
         return { size: 48, fontSize: '5vw' };
     };
     
@@ -468,7 +467,7 @@ function findValidPosition(existingPositions, isBackground = false) {
 
     @media (max-width: 768px) {
         .background-emoji, .person-emoji {
-            font-size: 1.5rem;
+            font-size: 2.2rem;
         }
         
         .emoji {
