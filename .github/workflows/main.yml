@@ -26,6 +26,12 @@ jobs:
         working-directory: ./my-svelte-app
         run: npm run build
 
+      - name: Create .nojekyll file
+        run: touch ./my-svelte-app/dist/.nojekyll
+
+      - name: List build output
+        run: ls -R ./my-svelte-app/dist
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
