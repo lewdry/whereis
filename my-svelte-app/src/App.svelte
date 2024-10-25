@@ -3,8 +3,8 @@
     
     let firstNames = ["Ali", "Ashley", "Ang", "Bradlee", "Bobbie", "Jose", "Wei", "Yan", "Andy", "Ying", "Jean", "Fransico", "Hong", "Fady", "Rich", "Rory", "Jo", "Sammy", "Philly", "Mal", "Tippy", "Sal", "Barb"];
     let lastNames = ["Beaverton", "Affagato", "Consomme", "Vendetta", "Smiley", "Gorge", "Keyboard", "Diamanté", "Blancmange", "Afterdinner", "Tobermory", "Futon", "Banquette", "Meringue", "Fingertip", "President", "Chapter", "Cookie", "Tennis-Smythe", "Badminton", "Flounder", "Crust", "Sandal", "Greenhouse", "Bassoon", "Foothold", "Mouthbreath", "Rowboat", "Childsplay", "Flatbread", "Legume"];
-    let sceneryEmojis = ["🌳", "🌲", "🎄", "🌴", "⛩️", "🗿", "🗼", "🎡", "⛲️"];
-    let buildingEmojis = ["🏠", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🕌", "🏦", "🏟️", "🏫", "🏯", "🏣", "🏪", "🏤"];
+    let sceneryEmojis = ["🌳", "🌲", "🎄", "🌴", "⛩️", "🗿", "🗼", "🎡", "⛲️", "🌳", "🌲", "🌴", "🌳", "🌲", "🌴"];
+    let buildingEmojis = ["🏠", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🕌", "🏦", "🏟️", "🏫", "🏯", "🏣", "🏪", "🏤", "🏠", "🏛️", "🏥", "💒", "🏢"];
     let peopleEmojis = ["🧍‍♂️", "🧍‍♀️", "💃", "🕺", "🧜", "🧘", "🤾", "👨‍🦼", "👩‍🦯‍➡️", "⛹️‍♀️", "🧚", "🤺", "🤸‍♀️", "🏌️‍♂️", "🪂", "🏇", "🏋️‍♀️"];
     
     let missingPerson = {};
@@ -26,6 +26,49 @@
         return { size: 48, fontSize: '5vw' };
     };
     
+    function calculateEmojiBounds(elements) {
+    // Find the extremes of emoji positions
+    const positions = elements.map(el => ({ x: el.x, y: el.y }));
+    
+    return {
+        minX: Math.min(...positions.map(p => p.x)),
+        maxX: Math.max(...positions.map(p => p.x)),
+        minY: Math.min(...positions.map(p => p.y)),
+        maxY: Math.max(...positions.map(p => p.y))
+    };
+}
+
+function centerEmojiDistribution(backgroundEmojis, peopleOnScreen) {
+    // Combine all elements to find overall bounds
+    const allElements = [...backgroundEmojis, ...peopleOnScreen];
+    const bounds = calculateEmojiBounds(allElements);
+    
+    // Calculate unused space
+    const unusedSpaceX = 100 - (bounds.maxX - bounds.minX);
+    const unusedSpaceY = 100 - (bounds.maxY - bounds.minY);
+    
+    // Calculate adjustment (half of unused space)
+    const adjustX = unusedSpaceX / 4;
+    const adjustY = unusedSpaceY / 4;
+    
+    // Only apply adjustment if there's significant unused space (e.g., > 10%)
+    if (unusedSpaceX > 10 || unusedSpaceY > 10) {
+        // Adjust background emojis
+        backgroundEmojis.forEach(emoji => {
+            emoji.x = Math.min(Math.max(emoji.x + adjustX, 5), 95);
+            emoji.y = Math.min(Math.max(emoji.y + adjustY, 5), 95);
+        });
+        
+        // Adjust people
+        peopleOnScreen.forEach(person => {
+            person.x = Math.min(Math.max(person.x + adjustX, 5), 95);
+            person.y = Math.min(Math.max(person.y + adjustY, 5), 90); // Lower max-Y for people
+        });
+    }
+    
+    return { backgroundEmojis, peopleOnScreen };
+}
+
     // Updated position generation with proper bounds
     function generatePosition(isBackground = false) {
     const { size } = getEmojiSize();
@@ -59,7 +102,7 @@
 }
 
 // Updated overlap check
-function checkOverlap(pos1, pos2, minDistance = 8) {
+function checkOverlap(pos1, pos2, minDistance = 5) {
     const dx = Math.abs(pos1.x - pos2.x);
     const dy = Math.abs(pos1.y - pos2.y);
     return dx < minDistance && dy < minDistance;
@@ -112,54 +155,61 @@ function findValidPosition(existingPositions, isBackground = false) {
     }
     
     function setupGameScreen() {
-        if (!gameAreaWidth || !gameAreaHeight) {
-            const gameArea = document.querySelector('.game-screen');
-            if (gameArea) {
-                gameAreaWidth = gameArea.clientWidth;
-                gameAreaHeight = gameArea.clientHeight;
-            }
+    if (!gameAreaWidth || !gameAreaHeight) {
+        const gameArea = document.querySelector('.game-screen');
+        if (gameArea) {
+            gameAreaWidth = gameArea.clientWidth;
+            gameAreaHeight = gameArea.clientHeight;
         }
-    
-        const allPositions = [];
-        
-        // Generate background elements
-        backgroundEmojis = [...sceneryEmojis, ...buildingEmojis].map(emoji => {
-            const position = findValidPosition(allPositions, true);
-            allPositions.push(position);
-            return {
-                emoji,
-                x: position.x,
-                y: position.y
-            };
-        });
-    
-        // Generate people
-        const shuffledPeople = [...peopleEmojis]
-            .filter(emoji => emoji !== missingPerson.emoji)
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 5);
-    
-        const otherPeople = shuffledPeople.map(emoji => {
-            const position = findValidPosition(allPositions, false);
-            allPositions.push(position);
-            return {
-                emoji,
-                id: Math.random().toString(36).substr(2, 9),
-                x: position.x,
-                y: position.y
-            };
-        });
-    
-        // Add missing person
-        const missingPersonPosition = findValidPosition(allPositions, false);
-        missingPerson = {
-            ...missingPerson,
-            x: missingPersonPosition.x,
-            y: missingPersonPosition.y
-        };
-        
-        peopleOnScreen = [...otherPeople, missingPerson];
     }
+
+    const allPositions = [];
+    
+    // Generate people
+    const shuffledPeople = [...peopleEmojis]
+        .filter(emoji => emoji !== missingPerson.emoji)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 7);
+
+    const otherPeople = shuffledPeople.map(emoji => {
+        const position = findValidPosition(allPositions, false);
+        allPositions.push(position);
+        return {
+            emoji,
+            id: Math.random().toString(36).substr(2, 9),
+            x: position.x,
+            y: position.y
+        };
+    });
+
+    // Add missing person
+    const missingPersonPosition = findValidPosition(allPositions, false);
+    missingPerson = {
+        ...missingPerson,
+        x: missingPersonPosition.x,
+        y: missingPersonPosition.y
+    };
+    
+    peopleOnScreen = [...otherPeople, missingPerson];
+
+    // Generate background elements
+    backgroundEmojis = [...sceneryEmojis, ...buildingEmojis].map(emoji => {
+        const position = findValidPosition(allPositions, true);
+        allPositions.push(position);
+        return {
+            emoji,
+            x: position.x,
+            y: position.y
+        };
+    });
+    
+    // Apply centering after all positions are generated
+    const { backgroundEmojis: centeredBackground, peopleOnScreen: centeredPeople } = 
+        centerEmojiDistribution(backgroundEmojis, peopleOnScreen);
+    
+    backgroundEmojis = centeredBackground;
+    peopleOnScreen = centeredPeople;
+}
     
     function updateGameArea() {
         const gameArea = document.querySelector('.game-screen');
@@ -315,7 +365,7 @@ function findValidPosition(existingPositions, isBackground = false) {
 
     .background-emoji {
         position: absolute;
-        font-size: 3vw;
+        font-size: 2.5em;
         z-index: 1;
         display: flex;
         align-items: center;
@@ -325,7 +375,7 @@ function findValidPosition(existingPositions, isBackground = false) {
     
     .person-emoji {
         position: absolute;
-        font-size: 3vw;
+        font-size: 2.5em;
         background: none;
         border: none;
         cursor: pointer;
