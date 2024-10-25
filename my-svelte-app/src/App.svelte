@@ -466,17 +466,16 @@ function findValidPosition(existingPositions, isBackground = false) {
         word-break: break-word;
     }
 
-    /* do I need this??
     @media (max-width: 768px) {
         .background-emoji, .person-emoji {
-            font-size: 2.5rem;
+            font-size: 2rem;
         }
         
         .emoji {
             font-size: clamp(3rem, 10vw, 5rem);
         }
     }
-    
+    /*
     @media (max-width: 480px) {
         .text-container {
             padding: 0 10px;
@@ -488,7 +487,7 @@ function findValidPosition(existingPositions, isBackground = false) {
         
         .background-emoji, .person-emoji {
             font-size: 2.5rem;
-        }
-
+        } 
         */
+
         </style>
