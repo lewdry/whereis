@@ -1,10 +1,12 @@
 <script>
     import { onMount, tick } from 'svelte';
+    import winSoundFile from './assets/win.mp3'; 
+    const winSound = new Audio(winSoundFile);
     
     let firstNames = ["Ali", "Ashley", "Ang", "Bradlee", "Bobbie", "Jose", "Wei", "Yan", "Andy", "Ying", "Jean", "Fransico", "Hong", "Fady", "Rich", "Rory", "Jo", "Sammy", "Philly", "Mal", "Tippy", "Sal", "Barb"];
     let lastNames = ["Beaverton", "Affagato", "Consomme", "Vendetta", "Smiley", "Gorge", "Keyboard", "Diamanté", "Blancmange", "Afterdinner", "Tobermory", "Futon", "Banquette", "Meringue", "Fingertip", "President", "Chapter", "Cookie", "Tennis-Smythe", "Badminton", "Flounder", "Crust", "Sandal", "Greenhouse", "Bassoon", "Foothold", "Mouthbreath", "Rowboat", "Childsplay", "Flatbread", "Legume"];
-    let sceneryEmojis = ["🌳", "🌲", "🎄", "🌴", "⛩️", "🗿", "🗼", "🎡", "⛲️", "🌳", "🌲", "🌴", "🌳", "🌲", "🌴"];
-    let buildingEmojis = ["🏠", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🕌", "🏦", "🏟️", "🏫", "🏯", "🏣", "🏪", "🏤", "🏠", "🏛️", "🏥", "💒", "🏢"];
+    let sceneryEmojis = ["🌳", "🌲", "🎄", "🌴", "⛩️", "🗿", "🗼", "🎡", "⛲️", "🌳", "🌲", "🌴"];
+    let buildingEmojis = ["🏠", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🕌", "🏦", "🏟️", "🏫", "🏯", "🏣", "🏪", "🏤", "🏠"];
     let peopleEmojis = ["🧍‍♂️", "🧍‍♀️", "💃", "🕺", "🧜", "🧘", "🤾", "👨‍🦼", "👩‍🦯‍➡️", "⛹️‍♀️", "🧚", "🤺", "🤸‍♀️", "🏌️‍♂️", "🪂", "🏇", "🏋️‍♀️"];
     
     let missingPerson = {};
@@ -21,8 +23,8 @@
     // Responsive sizing
     const getEmojiSize = () => {
         const width = window.innerWidth;
-        if (width <= 480) return { size: 36, fontSize: '8vw' };
-        if (width <= 768) return { size: 48, fontSize: '8vw' };
+        /* if (width <= 480) return { size: 36, fontSize: '8vw' };
+        if (width <= 768) return { size: 48, fontSize: '8vw' }; */
         return { size: 48, fontSize: '5vw' };
     };
     
@@ -36,6 +38,10 @@
         minY: Math.min(...positions.map(p => p.y)),
         maxY: Math.max(...positions.map(p => p.y))
     };
+}
+
+function preloadAudio() {
+    winSound.load();  // Preload the audio file
 }
 
 function centerEmojiDistribution(backgroundEmojis, peopleOnScreen) {
@@ -62,7 +68,7 @@ function centerEmojiDistribution(backgroundEmojis, peopleOnScreen) {
         // Adjust people
         peopleOnScreen.forEach(person => {
             person.x = Math.min(Math.max(person.x + adjustX, 5), 95);
-            person.y = Math.min(Math.max(person.y + adjustY, 5), 90); // Lower max-Y for people
+            person.y = Math.min(Math.max(person.y + adjustY, 5), 95);
         });
     }
     
@@ -73,7 +79,7 @@ function centerEmojiDistribution(backgroundEmojis, peopleOnScreen) {
     function generatePosition(isBackground = false) {
     const { size } = getEmojiSize();
     const sidePadding = size / 2;
-    const bottomPadding = isBackground ? size / 2 : size; // Extra bottom padding for people
+    const bottomPadding = isBackground ? size / 2 : size;
     
     // Get available space with safe bounds
     const maxX = gameAreaWidth - sidePadding * 2;
@@ -81,7 +87,7 @@ function centerEmojiDistribution(backgroundEmojis, peopleOnScreen) {
     
     // For background items, use grid-like positioning with protected edges
     if (isBackground) {
-        const gridSize = size * 1.2;
+        const gridSize = size * 1;
         const cols = Math.floor(maxX / gridSize);
         const rows = Math.floor(maxY / gridSize);
         
@@ -96,8 +102,8 @@ function centerEmojiDistribution(backgroundEmojis, peopleOnScreen) {
     
     // For people, use random positioning with protected edges and extra bottom padding
     return {
-        x: (sidePadding + Math.random() * maxX) / gameAreaWidth * 100,
-        y: (sidePadding + Math.random() * (maxY - sidePadding)) / gameAreaHeight * 100 // Reduced height range for people
+        x: (sidePadding + Math.random() * maxX) / gameAreaWidth * 80,
+        y: (sidePadding + Math.random() * (maxY - sidePadding)) / gameAreaHeight * 80
     };
 }
 
@@ -111,14 +117,14 @@ function checkOverlap(pos1, pos2, minDistance = 5) {
 // Updated position finding with edge protection
 function findValidPosition(existingPositions, isBackground = false) {
     let attempts = 0;
-    const maxAttempts = 500;
+    const maxAttempts = 100;
     
     while (attempts < maxAttempts) {
         const position = generatePosition(isBackground);
         
         // Enhanced bounds checking
         const { size } = getEmojiSize();
-        const bottomLimit = isBackground ? 95 : 90; // More restrictive bottom limit for people
+        const bottomLimit = isBackground ? 95 : 95; // More restrictive bottom limit for people
         
         if (position.x < 0 || position.x > 100 || position.y < 0 || position.y > bottomLimit) {
             attempts++;
@@ -126,7 +132,7 @@ function findValidPosition(existingPositions, isBackground = false) {
         }
         
         const hasOverlap = existingPositions.some(pos => 
-            checkOverlap(position, pos, isBackground ? 12 : 8)
+            checkOverlap(position, pos, isBackground ? 5 : 10)
         );
         
         if (!hasOverlap) return position;
@@ -135,10 +141,10 @@ function findValidPosition(existingPositions, isBackground = false) {
     
     // If we couldn't find a valid position, return a safe fallback
     const fallbackPosition = generatePosition(isBackground);
-    const bottomLimit = isBackground ? 95 : 90;
+    const bottomLimit = isBackground ? 95 : 95;
     return {
         x: Math.min(Math.max(fallbackPosition.x, 5), 95),
-        y: Math.min(Math.max(fallbackPosition.y, 5), bottomLimit)
+        y: Math.min(Math.max(fallbackPosition.y, 5), 95)
     };
 }
     
@@ -224,6 +230,7 @@ function findValidPosition(existingPositions, isBackground = false) {
     
     onMount(() => {
         initializeGame();
+        preloadAudio(); // Preload audio file
         window.addEventListener('resize', updateGameArea);
         
         return () => {
@@ -253,10 +260,14 @@ function findValidPosition(existingPositions, isBackground = false) {
     }
     
     function checkForWin(clickedPerson) {
-        if (clickedPerson.id === missingPerson.id) {
-            isGameWon = true;
-        }
+    if (clickedPerson.id === missingPerson.id) {
+        isGameWon = true;
+        winSound.currentTime = 0;  // Reset audio to start
+        winSound.play().catch(error => {
+            console.log('Error playing sound:', error);
+        });
     }
+}
     
     $: winMessage = isGameWon ? `Congratulations! You found ${firstName} ${lastName}!` : '';
     </script>
@@ -455,9 +466,10 @@ function findValidPosition(existingPositions, isBackground = false) {
         word-break: break-word;
     }
 
+    /* do I need this??
     @media (max-width: 768px) {
         .background-emoji, .person-emoji {
-            font-size: 8vw;
+            font-size: 2.5rem;
         }
         
         .emoji {
@@ -475,7 +487,8 @@ function findValidPosition(existingPositions, isBackground = false) {
         }
         
         .background-emoji, .person-emoji {
-            font-size: 8vw;
+            font-size: 2.5rem;
         }
-        }
+
+        */
         </style>
