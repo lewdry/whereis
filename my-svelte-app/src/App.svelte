@@ -468,7 +468,7 @@ function findValidPosition(existingPositions, isBackground = false) {
 
     @media (max-width: 768px) {
         .background-emoji, .person-emoji {
-            font-size: 2rem;
+            font-size: 1.5rem;
         }
         
         .emoji {
