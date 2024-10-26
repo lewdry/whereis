@@ -1,5 +1,6 @@
 <script>
     import { onMount, tick } from 'svelte';
+
     import winSoundFile from './assets/win.mp3'; 
     const winSound = new Audio(winSoundFile);
     
@@ -36,43 +37,48 @@
         maxX: Math.max(...positions.map(p => p.x)),
         minY: Math.min(...positions.map(p => p.y)),
         maxY: Math.max(...positions.map(p => p.y))
-    };
-}
-
-function preloadAudio() {
-    winSound.load();  // Preload the audio file
-}
-
-function centerEmojiDistribution(backgroundEmojis, peopleOnScreen) {
-    // Combine all elements to find overall bounds
-    const allElements = [...backgroundEmojis, ...peopleOnScreen];
-    const bounds = calculateEmojiBounds(allElements);
-    
-    // Calculate unused space
-    const unusedSpaceX = 100 - (bounds.maxX - bounds.minX);
-    const unusedSpaceY = 100 - (bounds.maxY - bounds.minY);
-    
-    // Calculate adjustment (half of unused space)
-    const adjustX = unusedSpaceX / 4;
-    const adjustY = unusedSpaceY / 4;
-    
-    // Only apply adjustment if there's significant unused space (e.g., > 10%)
-    if (unusedSpaceX > 10 || unusedSpaceY > 10) {
-        // Adjust background emojis
-        backgroundEmojis.forEach(emoji => {
-            emoji.x = Math.min(Math.max(emoji.x + adjustX, 5), 95);
-            emoji.y = Math.min(Math.max(emoji.y + adjustY, 5), 95);
-        });
-        
-        // Adjust people
-        peopleOnScreen.forEach(person => {
-            person.x = Math.min(Math.max(person.x + adjustX, 5), 95);
-            person.y = Math.min(Math.max(person.y + adjustY, 5), 95);
-        });
+        };
     }
-    
-    return { backgroundEmojis, peopleOnScreen };
-}
+
+    function preloadAudio() {
+    console.log('Loading audio from:', winSoundFile); // Debug log
+    winSound.load();
+    winSound.onerror = (e) => {
+        console.error('Audio loading error:', e);
+        console.log('Attempted audio path:', winSoundFile);
+        };
+    }
+
+    function centerEmojiDistribution(backgroundEmojis, peopleOnScreen) {
+        // Combine all elements to find overall bounds
+        const allElements = [...backgroundEmojis, ...peopleOnScreen];
+        const bounds = calculateEmojiBounds(allElements);
+        
+        // Calculate unused space
+        const unusedSpaceX = 100 - (bounds.maxX - bounds.minX);
+        const unusedSpaceY = 100 - (bounds.maxY - bounds.minY);
+        
+        // Calculate adjustment (half of unused space)
+        const adjustX = unusedSpaceX / 4;
+        const adjustY = unusedSpaceY / 4;
+        
+        // Only apply adjustment if there's significant unused space (e.g., > 10%)
+        if (unusedSpaceX > 10 || unusedSpaceY > 10) {
+            // Adjust background emojis
+            backgroundEmojis.forEach(emoji => {
+                emoji.x = Math.min(Math.max(emoji.x + adjustX, 5), 95);
+                emoji.y = Math.min(Math.max(emoji.y + adjustY, 5), 95);
+            });
+            
+            // Adjust people
+            peopleOnScreen.forEach(person => {
+                person.x = Math.min(Math.max(person.x + adjustX, 5), 95);
+                person.y = Math.min(Math.max(person.y + adjustY, 5), 95);
+            });
+        }
+        
+        return { backgroundEmojis, peopleOnScreen };
+    }
 
     // Updated position generation with proper bounds
     function generatePosition(isBackground = false) {
@@ -103,20 +109,20 @@ function centerEmojiDistribution(backgroundEmojis, peopleOnScreen) {
     return {
         x: (sidePadding + Math.random() * maxX) / gameAreaWidth * 80,
         y: (sidePadding + Math.random() * (maxY - sidePadding)) / gameAreaHeight * 80
-    };
-}
+        };
+    }
 
-// Updated overlap check
-function checkOverlap(pos1, pos2, minDistance = 5) {
-    const dx = Math.abs(pos1.x - pos2.x);
-    const dy = Math.abs(pos1.y - pos2.y);
-    return dx < minDistance && dy < minDistance;
-}
+    // Updated overlap check
+    function checkOverlap(pos1, pos2, minDistance = 5) {
+        const dx = Math.abs(pos1.x - pos2.x);
+        const dy = Math.abs(pos1.y - pos2.y);
+        return dx < minDistance && dy < minDistance;
+    }
 
-// Updated position finding with edge protection
-function findValidPosition(existingPositions, isBackground = false) {
-    let attempts = 0;
-    const maxAttempts = 100;
+    // Updated position finding with edge protection
+    function findValidPosition(existingPositions, isBackground = false) {
+        let attempts = 0;
+        const maxAttempts = 100;
     
     while (attempts < maxAttempts) {
         const position = generatePosition(isBackground);
@@ -144,9 +150,9 @@ function findValidPosition(existingPositions, isBackground = false) {
     return {
         x: Math.min(Math.max(fallbackPosition.x, 5), 95),
         y: Math.min(Math.max(fallbackPosition.y, 5), 95)
-    };
-}
-    
+        };
+    }
+        
     function initializeGame() {
         firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
         lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
@@ -261,12 +267,22 @@ function findValidPosition(existingPositions, isBackground = false) {
     function checkForWin(clickedPerson) {
     if (clickedPerson.id === missingPerson.id) {
         isGameWon = true;
-        winSound.currentTime = 0;  // Reset audio to start
-        winSound.play().catch(error => {
-            console.log('Error playing sound:', error);
-        });
+        if (winSound.readyState >= 2) {
+            winSound.currentTime = 0;
+            winSound.play().catch(error => {
+                console.error('Error playing sound:', error);
+            });
+        } else {
+            console.warn('Audio not loaded yet');
+            winSound.load();
+            winSound.oncanplaythrough = () => {
+                winSound.play().catch(error => {
+                    console.error('Error playing sound on retry:', error);
+                    });
+                };
+            }
+        }
     }
-}
     
     $: winMessage = isGameWon ? `Congratulations! You found ${firstName} ${lastName}!` : '';
     </script>
