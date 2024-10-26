@@ -21,6 +21,15 @@
     let gameAreaHeight;
     let isInitialized = false;
     
+    //variables to track the previous game's person
+    let previousGamePerson = {
+        firstName: '',
+        lastName: '',
+        emoji: ''
+    };
+
+    let isFirstGame = true;
+    
     // Responsive sizing
     const getEmojiSize = () => {
         const width = window.innerWidth;
@@ -154,12 +163,37 @@
     }
         
     function initializeGame() {
-        firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-        lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    if (isFirstGame) {
+        // First game always starts with Bobbie Futon
+        firstName = "Bobbie";
+        lastName = "Futon";
         missingPerson = {
-            emoji: peopleEmojis[Math.floor(Math.random() * peopleEmojis.length)],
+            emoji: "🧍‍♀️",
             id: Math.random().toString(36).substr(2, 9)
         };
+        isFirstGame = false;
+    } else {
+        // Generate new person different from previous game
+        do {
+            firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+            lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+            const newEmoji = peopleEmojis[Math.floor(Math.random() * peopleEmojis.length)];
+            
+            // Check if any of the values match the previous game
+            const isDifferent = 
+                firstName !== previousGamePerson.firstName ||
+                lastName !== previousGamePerson.lastName ||
+                newEmoji !== previousGamePerson.emoji;
+                
+            if (isDifferent) {
+                missingPerson = {
+                    emoji: newEmoji,
+                    id: Math.random().toString(36).substr(2, 9)
+                    };
+                    break;
+                }
+            } while (true);
+        }
         
         backgroundEmojis = [];
         peopleOnScreen = [];
@@ -258,10 +292,17 @@
     }
     
     function startNewGame() {
-        initializeGame();
-        isGameStarted = false;
-        isGameWon = false;
-        isInitialized = false;
+    // Store the current person's details before starting new game
+    previousGamePerson = {
+        firstName: firstName,
+        lastName: lastName,
+        emoji: missingPerson.emoji
+    };
+    
+    initializeGame();
+    isGameStarted = false;
+    isGameWon = false;
+    isInitialized = false;
     }
     
     function checkForWin(clickedPerson) {
