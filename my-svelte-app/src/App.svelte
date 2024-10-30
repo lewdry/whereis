@@ -1,8 +1,9 @@
 <script>
     import { onMount, tick } from 'svelte';
 
-    import winSoundFile from './assets/win.mp3'; 
+    import winSoundFile from './assets/win.mp3';
     const winSound = new Audio(winSoundFile);
+    winSound.preload = 'auto';
     
     let firstNames = ["Ali", "Ashley", "Ang", "Bradlee", "Bobbie", "Wei", "Yan", "Andy", "Ying", "Jean", "Franc", "Hong", "Rich", "Rory", "Jo", "Sammy", "Philly", "Mal", "Tippy", "Sal", "Barb", "River", "Gio", "Leith", "Leaf", "Paris", "Axel", "Yun", "Cameron", "Avery", "Ainsley", "Adrian", "Ari", "Charlie", "Ellis", "Dylan", "Drew", "Jordan", "Riley", "Morgan", "Taylor", "Jesse", "Robin", "Jo", "Jules", "Terri", "Ridley", "Sage", "Blake", "Ira", "Basil", "Scout", "Ollie", "Devon", "Shannon", "Birch", "Pat"];
     let lastNames = ["Beaverton", "Affagato", "Consommé", "Vendetta", "Smiley", "Gorgon", "Keyboard", "Diamanté", "Blancmange", "Afterdinner", "Tobermory", "Futon", "Banquette", "Meringue", "Fingertip", "President", "Hotdog", "Cookie", "Tennis-Smythe", "Badminton", "Flounder", "Stuffed-Crust", "Sandal", "Greenhouse", "Bassoon", "Foothold", "Mouthbreath", "Rowboat", "Childsplay", "Flatbread", "Legume", "Broadbean", "Sneaker", "Turtle", "Bouquet", "Salmon", "Goldleaf", "Croissant", "Crossbow", "Trolley"];
@@ -50,12 +51,22 @@
     }
 
     function preloadAudio() {
-    console.log('Loading audio from:', winSoundFile); // Debug log
-    winSound.load();
-    winSound.onerror = (e) => {
-        console.error('Audio loading error:', e);
-        console.log('Attempted audio path:', winSoundFile);
-        };
+        return new Promise((resolve, reject) => {
+            console.log('Loading audio from:', winSoundFile);
+            
+            winSound.oncanplaythrough = () => {
+                console.log('Audio loaded successfully');
+                resolve();
+            };
+            
+            winSound.onerror = (e) => {
+                console.error('Audio loading error:', e);
+                console.log('Attempted audio path:', winSoundFile);
+                reject(e);
+            };
+
+            winSound.load();
+        });
     }
 
     function centerEmojiDistribution(backgroundEmojis, peopleOnScreen) {
@@ -179,16 +190,16 @@
             lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
             const newEmoji = peopleEmojis[Math.floor(Math.random() * peopleEmojis.length)];
             
-            // Check if any of the values match the previous game
+            // Check that ALL values are different from the previous game
             const isDifferent = 
-                firstName !== previousGamePerson.firstName ||
-                lastName !== previousGamePerson.lastName ||
+                firstName !== previousGamePerson.firstName &&
+                lastName !== previousGamePerson.lastName &&
                 newEmoji !== previousGamePerson.emoji;
                 
-            if (isDifferent) {
-                missingPerson = {
-                    emoji: newEmoji,
-                    id: Math.random().toString(36).substr(2, 9)
+                if (isDifferent) {
+                    missingPerson = {
+                        emoji: newEmoji,
+                        id: Math.random().toString(36).substr(2, 9)
                     };
                     break;
                 }
@@ -268,8 +279,9 @@
     }
     
     onMount(() => {
-        initializeGame();
-        preloadAudio(); // Preload audio file
+        preloadAudio().then(() => {
+            initializeGame();
+        });
         window.addEventListener('resize', updateGameArea);
         
         return () => {
@@ -308,22 +320,13 @@
     function checkForWin(clickedPerson) {
     if (clickedPerson.id === missingPerson.id) {
         isGameWon = true;
-        if (winSound.readyState >= 2) {
-            winSound.currentTime = 0;
-            winSound.play().catch(error => {
-                console.error('Error playing sound:', error);
-            });
-        } else {
-            console.warn('Audio not loaded yet');
-            winSound.load();
-            winSound.oncanplaythrough = () => {
-                winSound.play().catch(error => {
-                    console.error('Error playing sound on retry:', error);
-                    });
-                };
-            }
-        }
+        // Immediately reset and play
+        winSound.currentTime = 0;
+        // Use Promise-based play with simple error handling
+        winSound.play()
+            .catch(error => console.error('Error playing sound:', error));
     }
+}
     
     $: winMessage = isGameWon ? `Congratulations! You found ${firstName} ${lastName}!` : '';
     </script>
