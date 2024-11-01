@@ -279,16 +279,21 @@
     }
     
     onMount(() => {
+        // Initialize game first to set initial name/emoji
+        initializeGame();
+        
+        // Then preload audio
         preloadAudio().then(() => {
-            initializeGame();
+            // Any post-audio initialization if needed
         });
+        
         window.addEventListener('resize', updateGameArea);
         
         return () => {
             window.removeEventListener('resize', updateGameArea);
         };
     });
-    
+        
     async function startGame() {
         isGameStarted = true;
         isGameWon = false;
