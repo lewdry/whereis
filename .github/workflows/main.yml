@@ -1,4 +1,4 @@
-name: Deploy SvelteKit Static Site to GitHub Pages
+name: Deploy SvelteKit Static Site
 
 on:
   push:
@@ -9,7 +9,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # needed for gh-pages
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -28,7 +28,7 @@ jobs:
         working-directory: ./my-svelte-app
         run: npm run build
 
-      - name: List build output
+      - name: List build output (optional)
         working-directory: ./my-svelte-app
         run: ls -R ./build
 
