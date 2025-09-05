@@ -1,10 +1,7 @@
-import adapter from '@sveltejs/adapter-static';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import { defineConfig } from 'vite';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
 
-export default {
-  preprocess: vitePreprocess(),
-  kit: {
-    adapter: adapter(),  // <- static output
-    paths: { base: '' }  // root deployment
-  }
-};
+export default defineConfig({
+  plugins: [svelte()],
+  base: '/'  // adjust if deploying to a subpath like '/whereis/'
+});

@@ -1,4 +1,4 @@
-name: Deploy SvelteKit Static Site
+name: Deploy Svelte Vite App
 
 on:
   push:
@@ -24,16 +24,16 @@ jobs:
         working-directory: ./my-svelte-app
         run: npm install
 
-      - name: Build SvelteKit static site
+      - name: Build Vite app
         working-directory: ./my-svelte-app
         run: npm run build
 
       - name: List build output (optional)
         working-directory: ./my-svelte-app
-        run: ls -R ./build
+        run: ls -R ./dist
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./my-svelte-app/build
+          publish_dir: ./my-svelte-app/dist
