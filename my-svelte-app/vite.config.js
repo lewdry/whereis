@@ -1,9 +1,11 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 
+const base = process.env.DEPLOY_TARGET === 'github' ? '/whereis/' : '/';
+
 export default defineConfig({
   plugins: [svelte()],
-  base: process.env.NODE_ENV === 'production' ? '/whereis/' : '/',
+  base,
   build: {
     assetsDir: 'assets',
     rollupOptions: {

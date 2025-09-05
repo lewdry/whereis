@@ -1,4 +1,4 @@
-name: Deploy Svelte Vite App
+name: Deploy Svelte Vite App to GitHub Pages
 
 on:
   push:
@@ -24,11 +24,11 @@ jobs:
         working-directory: ./my-svelte-app
         run: npm install
 
-      - name: Build Vite app
+      - name: Build for GitHub Pages
         working-directory: ./my-svelte-app
-        run: npm run build
+        run: DEPLOY_TARGET=github npm run build
 
-      - name: List build output (optional)
+      - name: List build output
         working-directory: ./my-svelte-app
         run: ls -R ./dist
 
