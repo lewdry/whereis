@@ -1,40 +1,39 @@
-name: Deploy to GitHub Pages
+name: Deploy SvelteKit Static Site to GitHub Pages
+
 on:
   push:
     branches:
       - main
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write  # needed for gh-pages
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-      
+
       - name: Install dependencies
         working-directory: ./my-svelte-app
         run: npm install
-      
-      - name: Build
+
+      - name: Build SvelteKit static site
         working-directory: ./my-svelte-app
         run: npm run build
-      
-      - name: Create .nojekyll file
-        run: touch ./my-svelte-app/dist/.nojekyll
-      
+
       - name: List build output
-        run: ls -R ./my-svelte-app/dist
-      
-      # Remove the sed commands since we're handling paths in vite config
-      
+        working-directory: ./my-svelte-app
+        run: ls -R ./build
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./my-svelte-app/dist
+          publish_dir: ./my-svelte-app/build
