@@ -1,17 +1,19 @@
 <script>
     import { onMount, tick } from 'svelte';
+    import firstNames from './firstnames.json';
+    import lastNames from './lastnames.json';
 
     import winSoundFile from './assets/win.mp3';
     const winSound = new Audio(winSoundFile);
     winSound.preload = 'auto';
-    
-    let firstNames = ["Ali", "Ashley", "Ang", "Bradlee", "Wei", "Yan", "Andy", "Ying", "Jean", "Franc", "Hong", "Rich", "Rory", "Jo", "Sammy", "Philly", "Mal", "Tippy", "Sal", "Barb", "River", "Gio", "Leith", "Leaf", "Paris", "Axel", "Yun", "Cameron", "Avery", "Ainsley", "Adrian", "Ari", "Charlie", "Ellis", "Drew", "Jordan", "Riley", "Morgan", "Taylor", "Jesse", "Robin", "Jo", "Jules", "Terri", "Ridley", "Sage", "Blake", "Ira", "Basil", "Scout", "Ollie", "Devon", "Shannon", "Birch", "Pat", "Mo", "Rocky", "Alex"];
-    let lastNames = ["Beaverton", "Affagato", "Consommé", "Vendetta", "Smiley", "Gorgon", "Keyboard", "Diamanté", "Blancmange", "Afterdinner", "Tobermory", "Banquette", "Meringue", "Fingertip", "President", "Hotdog", "Cookie", "Tennis-Smith", "Badminton", "Flounder", "Stuffed-Crust", "Sandal", "Greenhouse", "Bassoon", "Foothold", "Mouthbreath", "Rowboat", "Childsplay", "Flatbread", "Legume", "Broadbean", "Sneaker", "Turtle", "Bouquet", "Salmon", "Goldleaf", "Croissant", "Crossbow", "Trolley", "Sweetdream", "Elefantine", "Sugar-Glider", "Trumpet", "Stool-Simple"];
-    let sceneryEmojis = ["🌳", "🌲", "🎄", "🌴", "⛩️", "🗿", "🗼", "🎡", "⛲️", "🌳", "🌲", "🌴", "🌳", "🌲", "🌴", "🌵", "🌵"];
-    let buildingEmojis = ["🏠", "🏡", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🏦", "🏟️", "🏫", "🏯", "🏣", "🏪", "🏤", "🏠", "🎪", "🛖", "🏗️", "🏘️", "⛪️"];
+
+    let sceneryEmojis = ["🌳", "🌲", "🎄", "🌴", "⛩️", "🗿", "🗼", "🎡", "⛲️", "🌳", "🌲", "🌴", "🌳", "🌲", "🌴", "🌵", "🌵", "🏕️", "🌾"];
+    let buildingEmojis = ["🏠", "🏡", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🏦", "🏟️", "🏫", "🏯", "🏣", "🏪", "🏤", "🏠", "🎪", "🛖", "🏗️", "🏘️", "⛪️", "🏨", "🏭"];
     let peopleEmojis = ["🧍‍♂️", "💃", "🕺", "🧜", "🧘‍♀️", "🧘‍♂️", "🤾‍♀️", "🤾‍♂️", "👨‍🦼", "👩‍🦽‍➡️", "👩‍🦯‍➡️", "👨‍🦯", "⛹️‍♀️", "⛹️‍♂️", "🧚‍♀️", "🧚‍♂️", "🤺", "🤸‍♀️", "🤸‍♂️", "🏌️‍♂️", "🏌️‍♀️", "🪂", "🏇", "🏋️‍♂️", "🏋️‍♀️", "🏂", "🚴‍♀️", "🚴‍♂️"];
     
-    let missingPerson = {};
+    let missingPerson = { emoji: '🧍', id: '', frisked: false };
+    // Track whether the found/won emoji was frisked
+    // we'll attach this to the missingPerson as `frisked` when appropriate
     let firstName = "";
     let lastName = "";
     let isGameStarted = false;
@@ -21,6 +23,11 @@
     let gameAreaWidth;
     let gameAreaHeight;
     let isInitialized = false;
+    // weapon emojis for frisking
+    const weaponEmojis = ["🗡️","⚔️","🔪","🏹","🪓","🪚","🪄","💣","🧨","🔫"];
+
+    // spawned weapons on the win screen (frisked items)
+    let friskedWeapons = [];
     
     //variables to track the previous game's person
     let previousGamePerson = {
@@ -39,33 +46,50 @@
     };
     
     function calculateEmojiBounds(elements) {
-    // Find the extremes of emoji positions
-    const positions = elements.map(el => ({ x: el.x, y: el.y }));
-    
+    // Find the extremes of emoji positions. Be defensive: handle empty arrays
+    if (!elements || elements.length === 0) {
+        return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+    }
+
+    const positions = elements.map(el => ({ x: Number(el.x) || 0, y: Number(el.y) || 0 }));
+
     return {
         minX: Math.min(...positions.map(p => p.x)),
         maxX: Math.max(...positions.map(p => p.x)),
         minY: Math.min(...positions.map(p => p.y)),
         maxY: Math.max(...positions.map(p => p.y))
-        };
+    };
     }
+
+    let audioPreloaded = false;
 
     function preloadAudio() {
         return new Promise((resolve, reject) => {
             console.log('Loading audio from:', winSoundFile);
-            
+            if (audioPreloaded) {
+                resolve();
+                return;
+            }
+
             winSound.oncanplaythrough = () => {
                 console.log('Audio loaded successfully');
+                audioPreloaded = true;
                 resolve();
             };
-            
+
             winSound.onerror = (e) => {
                 console.error('Audio loading error:', e);
                 console.log('Attempted audio path:', winSoundFile);
                 reject(e);
             };
 
-            winSound.load();
+            try {
+                winSound.load();
+            } catch (err) {
+                // Some environments may throw when loading media without user interaction.
+                console.warn('winSound.load() failed:', err);
+                reject(err);
+            }
         });
     }
 
@@ -105,31 +129,35 @@
     const { size } = getEmojiSize();
     const sidePadding = size / 2;
     const bottomPadding = isBackground ? size / 2 : size;
-    
+
+    // Use safe fallbacks if game area isn't set yet
+    const safeGameAreaWidth = gameAreaWidth || window.innerWidth;
+    const safeGameAreaHeight = gameAreaHeight || window.innerHeight;
+
     // Get available space with safe bounds
-    const maxX = gameAreaWidth - sidePadding * 2;
-    const maxY = gameAreaHeight - (sidePadding + bottomPadding); // Asymmetric padding for bottom
-    
+    const maxX = Math.max(safeGameAreaWidth - sidePadding * 2, size);
+    const maxY = Math.max(safeGameAreaHeight - (sidePadding + bottomPadding), size); // Asymmetric padding for bottom
+
     // For background items, use grid-like positioning with protected edges
     if (isBackground) {
-        const gridSize = size * 1;
-        const cols = Math.floor(maxX / gridSize);
-        const rows = Math.floor(maxY / gridSize);
-        
+        const gridSize = Math.max(size, 1);
+        const cols = Math.max(1, Math.floor(maxX / gridSize));
+        const rows = Math.max(1, Math.floor(maxY / gridSize));
+
         const col = Math.floor(Math.random() * cols);
         const row = Math.floor(Math.random() * rows);
-        
+
         return {
-            x: (sidePadding + col * gridSize) / gameAreaWidth * 100,
-            y: (sidePadding + row * gridSize) / gameAreaHeight * 100
+            x: ((sidePadding + col * gridSize) / safeGameAreaWidth) * 100,
+            y: ((sidePadding + row * gridSize) / safeGameAreaHeight) * 100
         };
     }
-    
+
     // For people, use random positioning with protected edges and extra bottom padding
     return {
-        x: (sidePadding + Math.random() * maxX) / gameAreaWidth * 80,
-        y: (sidePadding + Math.random() * (maxY - sidePadding)) / gameAreaHeight * 80
-        };
+        x: ((sidePadding + Math.random() * maxX) / safeGameAreaWidth) * 100,
+        y: ((sidePadding + Math.random() * (maxY - sidePadding)) / safeGameAreaHeight) * 100
+    };
     }
 
     // Updated overlap check
@@ -180,7 +208,8 @@
         lastName = "Futon";
         missingPerson = {
             emoji: "🧍‍♀️",
-            id: Math.random().toString(36).substr(2, 9)
+            id: Math.random().toString(36).substr(2, 9),
+            frisked: false
         };
         isFirstGame = false;
     } else {
@@ -199,7 +228,8 @@
                 if (isDifferent) {
                     missingPerson = {
                         emoji: newEmoji,
-                        id: Math.random().toString(36).substr(2, 9)
+                        id: Math.random().toString(36).substr(2, 9),
+                        frisked: false
                     };
                     break;
                 }
@@ -248,7 +278,7 @@
     
     peopleOnScreen = [...otherPeople, missingPerson];
 
-    // Generate background elements
+    // Generate background elements (use full set of scenery + buildings)
     backgroundEmojis = [...sceneryEmojis, ...buildingEmojis].map(emoji => {
         const position = findValidPosition(allPositions, true);
         allPositions.push(position);
@@ -281,11 +311,7 @@
     onMount(() => {
         // Initialize game first to set initial name/emoji
         initializeGame();
-        
-        // Then preload audio
-        preloadAudio().then(() => {
-            // Any post-audio initialization if needed
-        });
+        // Defer audio preloading until user interaction (startGame) to avoid autoplay blocks
         
         window.addEventListener('resize', updateGameArea);
         
@@ -297,10 +323,35 @@
     async function startGame() {
         isGameStarted = true;
         isGameWon = false;
-        
+        // Preload audio on first user action; ignore errors
+        preloadAudio().catch(e => console.debug('Audio preload deferred or failed:', e));
+
+        // Try to proactively decode/unlock the audio using a short muted play/pause
+        // This runs on the user gesture (start button) so browsers will allow it
+        (async () => {
+            // Use both muted and volume=0 to ensure the temporary play is silent across browsers
+            const previousMuted = winSound.muted;
+            const previousVolume = typeof winSound.volume === 'number' ? winSound.volume : 1;
+            try {
+                winSound.muted = true;
+                try { winSound.volume = 0; } catch (e) { /* some browsers may forbid setting volume early */ }
+                await winSound.play();
+                winSound.pause();
+                winSound.currentTime = 0;
+                audioPreloaded = true;
+                console.debug('Audio decoded/unlocked via silent play/pause');
+            } catch (err) {
+                console.debug('Audio decode/unlock failed:', err);
+            } finally {
+                // Restore previous audio state
+                try { winSound.volume = previousVolume; } catch (e) { /* ignore */ }
+                winSound.muted = previousMuted;
+            }
+        })();
+
         // Wait for the game screen to be rendered
         await tick();
-        
+
         // Small delay to ensure DOM is updated
         setTimeout(() => {
             updateGameArea();
@@ -316,7 +367,13 @@
         emoji: missingPerson.emoji
     };
     
+    // clear any frisked weapons from the previous win screen
+    friskedWeapons = [];
+
     initializeGame();
+    // also ensure frisked flag reset just in case
+    missingPerson = { ...missingPerson, frisked: false };
+
     isGameStarted = false;
     isGameWon = false;
     isInitialized = false;
@@ -332,6 +389,64 @@
             .catch(error => console.error('Error playing sound:', error));
     }
 }
+
+    // Frisking on the win screen: spawn a weapon emoji that bounces out
+    // and settles off to the left or right. Marks the missingPerson as frisked.
+    async function friskWinEmoji(event) {
+        // If already frisked this win, ignore further interactions
+        if (missingPerson && missingPerson.frisked) return;
+        // Guard: ensure we have a win-screen container
+        const clickedEl = event.currentTarget;
+        const container = clickedEl.closest('.win-screen');
+        if (!container) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = clickedEl.getBoundingClientRect();
+
+        // center of the clicked emoji relative to container
+        const centerX = (targetRect.left + targetRect.width / 2) - containerRect.left;
+        const centerY = (targetRect.top + targetRect.height / 2) - containerRect.top;
+
+        const xPercent = (centerX / containerRect.width) * 100;
+        const yPercent = (centerY / containerRect.height) * 100;
+
+        const side = Math.random() < 0.5 ? 'left' : 'right';
+        const weaponEmoji = weaponEmojis[Math.floor(Math.random() * weaponEmojis.length)];
+        const id = Math.random().toString(36).substr(2, 9);
+
+    // how far to push the weapon (fraction of an emoji width). Use 0.5 to place
+    // the fallen weapon about 0.5 emoji widths away on the x axis.
+    const offsetPercent = (targetRect.width / containerRect.width) * 100 * 0.5;
+        const upOffset = Math.min(12, (targetRect.height / containerRect.height) * 100 + 2);
+
+        const weapon = {
+            id,
+            emoji: weaponEmoji,
+            x: xPercent,
+            y: yPercent,
+            side,
+            settled: false
+        };
+
+        // Add to list so it renders
+        friskedWeapons = [...friskedWeapons, weapon];
+
+        // mark the missing person as frisked for later game logic
+        missingPerson = { ...missingPerson, frisked: true };
+
+        // Wait for DOM to update
+        await tick();
+
+        // Animate: move outwards and slightly up, then drop and settle
+        const newX = xPercent + (side === 'right' ? offsetPercent : -offsetPercent);
+        // first move up/out
+        friskedWeapons = friskedWeapons.map(w => w.id === id ? { ...w, x: newX, y: yPercent - upOffset } : w);
+
+        // after a short time, drop to the original y and mark settled (so it stays)
+        setTimeout(() => {
+            friskedWeapons = friskedWeapons.map(w => w.id === id ? { ...w, y: yPercent, settled: true } : w);
+        }, 50);
+    }
     
     $: winMessage = isGameWon ? `Congratulations! You found ${firstName} ${lastName}!` : '';
     </script>
@@ -358,20 +473,24 @@
             on:touchstart|preventDefault={() => {}}
             on:touchend|preventDefault={() => {}}>
             {#if isInitialized}
-                {#each backgroundEmojis as emoji}
-                <div 
-                    class="background-emoji" 
-                    style="top: {emoji.y}%; left: {emoji.x}%;">
-                    {emoji.emoji}
-                </div>
-                {/each}
+                    {#each backgroundEmojis as emoji}
+                    <div 
+                        class="background-emoji" 
+                        style="top: {emoji.y}%; left: {emoji.x}%;"
+                        role="img"
+                        aria-hidden="true">
+                        {emoji.emoji}
+                    </div>
+                    {/each}
                 
-                {#each peopleOnScreen as person}
+                {#each peopleOnScreen as person, i}
                 <button 
                     class="person-emoji"
                     style="top: {person.y}%; left: {person.x}%;"
                     on:click={() => checkForWin(person)}
-                    on:touchstart|preventDefault={() => checkForWin(person)}>
+                    on:pointerdown|preventDefault={() => checkForWin(person)}
+                    title={`Person ${i+1}`}
+                    aria-label={`Person ${i+1}: ${person.emoji}`}>
                     {person.emoji}
                 </button>
                 {/each}
@@ -388,6 +507,23 @@
             <div class="text-container">
                 <h1><span class="highlight">Congratulations!</span><br>You found<br><span class="name">{firstName} {lastName}</span>!</h1>
             </div>
+            <div
+                class="emoji"
+                role="button"
+                tabindex="0"
+                on:click={friskWinEmoji}
+                on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); friskWinEmoji(e); } }}
+                title="Tap to frisk"
+            >{missingPerson.emoji}</div>
+                
+            {#each friskedWeapons as weapon (weapon.id)}
+                <div
+                    class="weapon-emoji"
+                    style="left: {weapon.x}%; top: {weapon.y}%;"
+                    aria-hidden="true"
+                >{weapon.emoji}</div>
+            {/each}
+                <div class="sr-only" aria-live="polite">{winMessage}</div>
             <button class="new-game-btn" on:click={startNewGame}>New Game</button>
         </div>
     </div>
@@ -397,7 +533,7 @@
     .container {
     display: flex;
     justify-content: center;
-    align-items: flex start;
+    align-items: flex-start;
     padding-top: 20px;
     width: 100%;
     height: 100vh; 
@@ -468,10 +604,46 @@
         transform: translate(-50%, -50%) scale(1.1);
         background-color: transparent;
     }
+
+    .person-emoji:focus-visible {
+        outline: 3px solid #007acc;
+        border-radius: 6px;
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+
+    /* Screen-reader-only helper */
+    .sr-only {
+        position: absolute !important;
+        height: 1px; width: 1px;
+        overflow: hidden;
+        clip: rect(1px, 1px, 1px, 1px);
+        white-space: nowrap;
+    }
     
     .emoji {
         font-size: 6rem;
         margin: 20px 0;
+    }
+
+    /* Win-screen weapon (frisk) visuals */
+    .win-screen {
+        position: relative;
+    }
+
+    .win-screen .emoji {
+        cursor: pointer;
+    }
+
+    .weapon-emoji {
+        position: absolute;
+        font-size: 2.5rem;
+        z-index: 4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: translate(-50%, -50%);
+        transition: left 520ms cubic-bezier(.2,.8,.2,1), top 320ms ease;
+        pointer-events: none; /* don't block further interactions */
     }
     
     h1 {
