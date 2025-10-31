@@ -42,6 +42,9 @@
     let totalPeopleFound = 0;
     let scoreAnimating = false;
     
+    // Track wrong clicks for visual feedback
+    let wrongClickedPeople = new Set();
+    
     // Responsive sizing
     const getEmojiSize = () => {
         const width = window.innerWidth;
@@ -350,6 +353,9 @@
     
     // clear any frisked weapons from the previous win screen
     friskedWeapons = [];
+    
+    // Clear wrong clicked people for new game
+    wrongClickedPeople = new Set();
 
     initializeGame();
     // also ensure frisked flag reset just in case
@@ -389,6 +395,10 @@
             };
             
             playFanfare();
+        } else {
+            // Wrong person clicked - add to wrong clicks set for visual feedback
+            wrongClickedPeople.add(clickedPerson.id);
+            wrongClickedPeople = wrongClickedPeople; // Trigger reactivity
         }
     }
 
@@ -494,6 +504,7 @@
                     {#each peopleOnScreen as person, i}
                     <button 
                         class="person-emoji"
+                        class:wrong-clicked={wrongClickedPeople.has(person.id)}
                         style="top: {person.y}%; left: {person.x}%;"
                         on:click={() => checkForWin(person)}
                         on:pointerdown|preventDefault={() => checkForWin(person)}
@@ -551,7 +562,7 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding-top: 32px;
+    padding-top: 20px;
     width: 100%;
     height: 100vh; 
     background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
@@ -756,6 +767,20 @@
         transform: translate(-50%, -50%) scale(1.05);
     }
 
+    .person-emoji.wrong-clicked {
+        background-color: #ffc8dd !important;
+        border-radius: 50%;
+        border: none;
+        box-shadow: inset 0 0 0 2px #ffb3d6;
+        box-sizing: border-box;
+    }
+
+    .person-emoji.wrong-clicked:hover {
+        background-color: #ffc8dd !important;
+        transform: translate(-50%, -50%) scale(1.1);
+        box-shadow: inset 0 0 0 2px #ffb3d6;
+    }
+
     /* Screen-reader-only helper */
     .sr-only {
         position: absolute !important;
@@ -806,38 +831,31 @@
         letter-spacing: -0.025em;
     }
     
-    button {
+    button:not(.person-emoji) {
         margin-top: 24px;
         padding: 14px 28px;
         font-size: clamp(1rem, 2vw, 1.1rem);
         background: linear-gradient(135deg, #DBF9F0 0%, #C7F4E8 100%);
-        border: 1px solid #A7F3D0;
+        border: none;
+        box-shadow: inset 0 0 0 1px #A7F3D0, 0 1px 2px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
         color: #064e3b;
         border-radius: 12px;
         cursor: pointer;
         font-weight: 600;
         letter-spacing: 0.025em;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 
-            0 1px 2px rgba(0, 0, 0, 0.05),
-            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        box-sizing: border-box;
     }
     
-    button:hover {
+    button:not(.person-emoji):hover {
         background: linear-gradient(135deg, #C7F4E8 0%, #A7F3D0 100%);
-        border-color: #86EFAC;
+        box-shadow: inset 0 0 0 1px #86EFAC, 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
         transform: translateY(-1px);
-        box-shadow: 
-            0 4px 6px -1px rgba(0, 0, 0, 0.08),
-            0 2px 4px -1px rgba(0, 0, 0, 0.06),
-            inset 0 1px 0 rgba(255, 255, 255, 0.9);
     }
 
-    button:active {
+    button:not(.person-emoji):active {
         transform: translateY(0);
-        box-shadow: 
-            0 1px 2px rgba(0, 0, 0, 0.05),
-            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        box-shadow: inset 0 0 0 1px #A7F3D0, 0 1px 2px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
     }
     
     .new-game-btn {
@@ -845,33 +863,26 @@
         padding: 14px 28px;
         font-size: clamp(1rem, 2vw, 1.1rem);
         background: linear-gradient(135deg, #DBF9F0 0%, #C7F4E8 100%);
-        border: 1px solid #A7F3D0;
+        border: none;
+        box-shadow: inset 0 0 0 1px #A7F3D0, 0 1px 2px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
         color: #064e3b;
         border-radius: 12px;
         cursor: pointer;
         font-weight: 600;
         letter-spacing: 0.025em;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 
-            0 1px 2px rgba(0, 0, 0, 0.05),
-            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        box-sizing: border-box;
     }
     
     .new-game-btn:hover {
         background: linear-gradient(135deg, #C7F4E8 0%, #A7F3D0 100%);
-        border-color: #86EFAC;
+        box-shadow: inset 0 0 0 1px #86EFAC, 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
         transform: translateY(-1px);
-        box-shadow: 
-            0 4px 6px -1px rgba(0, 0, 0, 0.08),
-            0 2px 4px -1px rgba(0, 0, 0, 0.06),
-            inset 0 1px 0 rgba(255, 255, 255, 0.9);
     }
 
     .new-game-btn:active {
         transform: translateY(0);
-        box-shadow: 
-            0 1px 2px rgba(0, 0, 0, 0.05),
-            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        box-shadow: inset 0 0 0 1px #A7F3D0, 0 1px 2px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
     }
     
     .highlight {
