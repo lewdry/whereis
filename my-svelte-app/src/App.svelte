@@ -38,6 +38,10 @@
 
     let isFirstGame = true;
     
+    // Score tracking
+    let totalPeopleFound = 0;
+    let scoreAnimating = false;
+    
     // Responsive sizing
     const getEmojiSize = () => {
         const width = window.innerWidth;
@@ -326,29 +330,6 @@
         // Preload audio on first user action; ignore errors
         preloadAudio().catch(e => console.debug('Audio preload deferred or failed:', e));
 
-        // Try to proactively decode/unlock the audio using a short muted play/pause
-        // This runs on the user gesture (start button) so browsers will allow it
-        (async () => {
-            // Use both muted and volume=0 to ensure the temporary play is silent across browsers
-            const previousMuted = winSound.muted;
-            const previousVolume = typeof winSound.volume === 'number' ? winSound.volume : 1;
-            try {
-                winSound.muted = true;
-                try { winSound.volume = 0; } catch (e) { /* some browsers may forbid setting volume early */ }
-                await winSound.play();
-                winSound.pause();
-                winSound.currentTime = 0;
-                audioPreloaded = true;
-                console.debug('Audio decoded/unlocked via silent play/pause');
-            } catch (err) {
-                console.debug('Audio decode/unlock failed:', err);
-            } finally {
-                // Restore previous audio state
-                try { winSound.volume = previousVolume; } catch (e) { /* ignore */ }
-                winSound.muted = previousMuted;
-            }
-        })();
-
         // Wait for the game screen to be rendered
         await tick();
 
@@ -380,15 +361,36 @@
     }
     
     function checkForWin(clickedPerson) {
-    if (clickedPerson.id === missingPerson.id) {
-        isGameWon = true;
-        // Immediately reset and play
-        winSound.currentTime = 0;
-        // Use Promise-based play with simple error handling
-        winSound.play()
-            .catch(error => console.error('Error playing sound:', error));
+        if (clickedPerson.id === missingPerson.id) {
+            isGameWon = true;
+            totalPeopleFound += 1; // Increment score
+            
+            // Trigger score animation
+            scoreAnimating = true;
+            setTimeout(() => {
+                scoreAnimating = false;
+            }, 800); // Animation duration
+            
+            // Try to unlock audio context if needed (some browsers require this)
+            const playFanfare = async () => {
+                try {
+                    // Reset the audio to start from beginning
+                    winSound.currentTime = 0;
+                    // Ensure audio is unmuted and at normal volume
+                    winSound.muted = false;
+                    if (typeof winSound.volume === 'number') {
+                        winSound.volume = 1;
+                    }
+                    // Play the fanfare
+                    await winSound.play();
+                } catch (error) {
+                    console.error('Error playing fanfare:', error);
+                }
+            };
+            
+            playFanfare();
+        }
     }
-}
 
     // Frisking on the win screen: spawn a weapon emoji that bounces out
     // and settles off to the left or right. Marks the missingPerson as frisked.
@@ -454,12 +456,17 @@
     <!-- Splash screen -->
     {#if !isGameStarted}
     <div class="container">
-        <div class="splash-screen">
-            <div class="text-container">
-                <h1><span class="highlight">Where is</span><br><span class="name">{firstName} {lastName}</span>?</h1>
+        <div class="game-wrapper">
+            <div class="splash-screen">
+                <div class="text-container">
+                    <h1><span class="highlight">Where is</span><br><span class="name">{firstName} {lastName}</span>?</h1>
+                </div>
+                <div class="emoji">{missingPerson.emoji}</div>
+                <button on:click={startGame}>Search</button>
             </div>
-            <div class="emoji">{missingPerson.emoji}</div>
-            <button on:click={startGame}>Search</button>
+            <div class="scorecard">
+                <div class="score-text">People Found: <span class="score-number" class:score-pop={scoreAnimating}>{totalPeopleFound}</span></div>
+            </div>
         </div>
     </div>
     {/if}
@@ -467,34 +474,39 @@
     <!-- Game screen -->
     {#if isGameStarted && !isGameWon}
     <div class="container">
-        <div 
-            class="game-screen"
-            on:touchmove|preventDefault={() => {}}
-            on:touchstart|preventDefault={() => {}}
-            on:touchend|preventDefault={() => {}}>
-            {#if isInitialized}
-                    {#each backgroundEmojis as emoji}
-                    <div 
-                        class="background-emoji" 
-                        style="top: {emoji.y}%; left: {emoji.x}%;"
-                        role="img"
-                        aria-hidden="true">
-                        {emoji.emoji}
-                    </div>
+        <div class="game-wrapper">
+            <div 
+                class="game-screen"
+                on:touchmove|preventDefault={() => {}}
+                on:touchstart|preventDefault={() => {}}
+                on:touchend|preventDefault={() => {}}>
+                {#if isInitialized}
+                        {#each backgroundEmojis as emoji}
+                        <div 
+                            class="background-emoji" 
+                            style="top: {emoji.y}%; left: {emoji.x}%;"
+                            role="img"
+                            aria-hidden="true">
+                            {emoji.emoji}
+                        </div>
+                        {/each}
+                    
+                    {#each peopleOnScreen as person, i}
+                    <button 
+                        class="person-emoji"
+                        style="top: {person.y}%; left: {person.x}%;"
+                        on:click={() => checkForWin(person)}
+                        on:pointerdown|preventDefault={() => checkForWin(person)}
+                        title={`Person ${i+1}`}
+                        aria-label={`Person ${i+1}: ${person.emoji}`}>
+                        {person.emoji}
+                    </button>
                     {/each}
-                
-                {#each peopleOnScreen as person, i}
-                <button 
-                    class="person-emoji"
-                    style="top: {person.y}%; left: {person.x}%;"
-                    on:click={() => checkForWin(person)}
-                    on:pointerdown|preventDefault={() => checkForWin(person)}
-                    title={`Person ${i+1}`}
-                    aria-label={`Person ${i+1}: ${person.emoji}`}>
-                    {person.emoji}
-                </button>
-                {/each}
-            {/if}
+                {/if}
+            </div>
+            <div class="scorecard">
+                <div class="score-text">People Found: <span class="score-number" class:score-pop={scoreAnimating}>{totalPeopleFound}</span></div>
+            </div>
         </div>
     </div>
     {/if}
@@ -503,28 +515,33 @@
     <!-- Win screen -->
     {#if isGameWon}
     <div class="container">
-        <div class="win-screen">
-            <div class="text-container">
-                <h1><span class="highlight">Congratulations!</span><br>You found<br><span class="name">{firstName} {lastName}</span>!</h1>
-            </div>
-            <div
-                class="emoji"
-                role="button"
-                tabindex="0"
-                on:click={friskWinEmoji}
-                on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); friskWinEmoji(e); } }}
-                title="Tap to frisk"
-            >{missingPerson.emoji}</div>
-                
-            {#each friskedWeapons as weapon (weapon.id)}
+        <div class="game-wrapper">
+            <div class="win-screen">
+                <div class="text-container">
+                    <h1><span class="highlight">Congratulations!</span><br>You found<br><span class="name">{firstName} {lastName}</span>!</h1>
+                </div>
                 <div
-                    class="weapon-emoji"
-                    style="left: {weapon.x}%; top: {weapon.y}%;"
-                    aria-hidden="true"
-                >{weapon.emoji}</div>
-            {/each}
-                <div class="sr-only" aria-live="polite">{winMessage}</div>
-            <button class="new-game-btn" on:click={startNewGame}>New Game</button>
+                    class="emoji"
+                    role="button"
+                    tabindex="0"
+                    on:click={friskWinEmoji}
+                    on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); friskWinEmoji(e); } }}
+                    title="Tap to frisk"
+                >{missingPerson.emoji}</div>
+                    
+                {#each friskedWeapons as weapon (weapon.id)}
+                    <div
+                        class="weapon-emoji"
+                        style="left: {weapon.x}%; top: {weapon.y}%;"
+                        aria-hidden="true"
+                    >{weapon.emoji}</div>
+                {/each}
+                    <div class="sr-only" aria-live="polite">{winMessage}</div>
+                <button class="new-game-btn" on:click={startNewGame}>New Game</button>
+            </div>
+            <div class="scorecard">
+                <div class="score-text">People Found: <span class="score-number" class:score-pop={scoreAnimating}>{totalPeopleFound}</span></div>
+            </div>
         </div>
     </div>
     {/if}
@@ -534,11 +551,133 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding-top: 20px;
+    padding-top: 32px;
     width: 100%;
     height: 100vh; 
-    background-color: #ffffff;
+    background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
+
+    .game-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        width: 80%;
+        max-width: 400px;
+    }
+
+    .scorecard {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 12px 20px;
+        width: 100%;
+        max-width: 200px;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+        box-sizing: border-box;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .scorecard::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #374151 0%, #6b7280 100%);
+        border-radius: 0 0 12px 12px;
+    }
+
+    .score-text {
+        font-size: 1rem;
+        color: #6b7280;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        margin-bottom: 2px;
+    }
+
+    .score-number {
+        font-weight: 700;
+        color: #111827;
+        font-size: 1rem;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+        transition: transform 0.2s ease;
+        position: relative;
+        display: inline-block;
+    }
+
+    .score-pop {
+        animation: scoreIncrement 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .score-pop::before {
+        content: '✨';
+        position: absolute;
+        left: -15px;
+        top: -5px;
+        font-size: 0.8em;
+        animation: sparkle1 0.8s ease-out;
+        pointer-events: none;
+    }
+
+    .score-pop::after {
+        content: '🎉';
+        position: absolute;
+        right: -15px;
+        top: -5px;
+        font-size: 0.8em;
+        animation: sparkle2 0.8s ease-out;
+        pointer-events: none;
+    }
+
+    @keyframes scoreIncrement {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.4);
+            color: #059669;
+        }
+        100% {
+            transform: scale(1);
+            color: #111827;
+        }
+    }
+
+    @keyframes sparkle1 {
+        0% {
+            opacity: 0;
+            transform: scale(0) rotate(0deg) translateY(0);
+        }
+        50% {
+            opacity: 1;
+            transform: scale(1.2) rotate(180deg) translateY(-10px);
+        }
+        100% {
+            opacity: 0;
+            transform: scale(0.8) rotate(360deg) translateY(-20px);
+        }
+    }
+
+    @keyframes sparkle2 {
+        0% {
+            opacity: 0;
+            transform: scale(0) rotate(0deg) translateY(0);
+        }
+        60% {
+            opacity: 1;
+            transform: scale(1.1) rotate(-150deg) translateY(-8px);
+        }
+        100% {
+            opacity: 0;
+            transform: scale(0.9) rotate(-270deg) translateY(-18px);
+        }
+    }
 
     .splash-screen, .win-screen, .game-screen {
         text-align: center;
@@ -549,16 +688,21 @@
         align-items: center;
         justify-content: center;
         min-height: 50vh;
-        width: 80%;
-        height: 80%;
+        width: 100%;
+        height: 80vh;
         max-width: 400px;
         max-height: 700px;
         aspect-ratio: 4 / 7;
-        border: 2px solid black;
-        border-radius: 1em;
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border: 1px solid #e5e7eb;
+        border-radius: 24px;
+        box-shadow: 
+            0 4px 6px -1px rgba(0, 0, 0, 0.05),
+            0 2px 4px -1px rgba(0, 0, 0, 0.03),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
         overflow: hidden;
-        touch-action: none; /* Prevents default touch behaviors */
-        -webkit-user-select: none; /* Prevents text selection on iOS */
+        touch-action: none;
+        -webkit-user-select: none;
         user-select: none;
     }
 
@@ -566,7 +710,7 @@
         width: 100%;
         max-width: 600px;
         margin: 0 auto;
-        padding: 0 20px;
+        padding: 0 24px;
         box-sizing: border-box;
     }
     
@@ -606,8 +750,9 @@
     }
 
     .person-emoji:focus-visible {
-        outline: 3px solid #007acc;
-        border-radius: 6px;
+        outline: 2px solid #6b7280;
+        outline-offset: 2px;
+        border-radius: 8px;
         transform: translate(-50%, -50%) scale(1.05);
     }
 
@@ -647,58 +792,99 @@
     }
     
     h1 {
-    font-size: 1.4rem;
-    margin: 0;
-    padding: 10px;
-    line-height: 1.4;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    -webkit-hyphens: auto;
-    -ms-hyphens: auto;
-    hyphens: auto;
+        font-size: 1.5rem;
+        margin: 0;
+        padding: 16px;
+        line-height: 1.3;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        -webkit-hyphens: auto;
+        -ms-hyphens: auto;
+        hyphens: auto;
+        color: #1f2937;
+        font-weight: 600;
+        letter-spacing: -0.025em;
     }
     
     button {
-        margin-top: 20px;
-        padding: 10px 20px;
-        font-size: clamp(1rem, 2vw, 1.2rem);
-        background-color: #f0f0f0;
-        border: 2px solid #ccc;
-        color: #000000;
-        border-radius: 5px;
+        margin-top: 24px;
+        padding: 14px 28px;
+        font-size: clamp(1rem, 2vw, 1.1rem);
+        background: linear-gradient(135deg, #DBF9F0 0%, #C7F4E8 100%);
+        border: 1px solid #A7F3D0;
+        color: #064e3b;
+        border-radius: 12px;
         cursor: pointer;
-        transition: all 0.25s;
+        font-weight: 600;
+        letter-spacing: 0.025em;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 
+            0 1px 2px rgba(0, 0, 0, 0.05),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
     }
     
     button:hover {
-        background-color: #f0f0f0;
-        border-color: #999;
+        background: linear-gradient(135deg, #C7F4E8 0%, #A7F3D0 100%);
+        border-color: #86EFAC;
+        transform: translateY(-1px);
+        box-shadow: 
+            0 4px 6px -1px rgba(0, 0, 0, 0.08),
+            0 2px 4px -1px rgba(0, 0, 0, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    button:active {
+        transform: translateY(0);
+        box-shadow: 
+            0 1px 2px rgba(0, 0, 0, 0.05),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
     }
     
     .new-game-btn {
-        margin-top: 20px;
-        padding: 10px 20px;
-        font-size: clamp(1rem, 2vw, 1.2rem);
-        border: 2px solid #ccc;
-        border-radius: 5px;
+        margin-top: 24px;
+        padding: 14px 28px;
+        font-size: clamp(1rem, 2vw, 1.1rem);
+        background: linear-gradient(135deg, #DBF9F0 0%, #C7F4E8 100%);
+        border: 1px solid #A7F3D0;
+        color: #064e3b;
+        border-radius: 12px;
         cursor: pointer;
-        transition: all 0.25s;
+        font-weight: 600;
+        letter-spacing: 0.025em;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 
+            0 1px 2px rgba(0, 0, 0, 0.05),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
     }
     
     .new-game-btn:hover {
-        background-color: #f0f0f0;
-        border-color: #999;
+        background: linear-gradient(135deg, #C7F4E8 0%, #A7F3D0 100%);
+        border-color: #86EFAC;
+        transform: translateY(-1px);
+        box-shadow: 
+            0 4px 6px -1px rgba(0, 0, 0, 0.08),
+            0 2px 4px -1px rgba(0, 0, 0, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .new-game-btn:active {
+        transform: translateY(0);
+        box-shadow: 
+            0 1px 2px rgba(0, 0, 0, 0.05),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
     }
     
     .highlight {
-    display: inline-block;
-    margin-bottom: 0.5rem;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+        color: #6b7280;
+        font-weight: 500;
     }   
 
     .name {
         display: inline-block;
         font-weight: 700;
-        color: #000000; 
+        color: #111827; 
         word-break: break-word;
     }
 
