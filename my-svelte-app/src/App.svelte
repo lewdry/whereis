@@ -3,9 +3,11 @@
     import firstNames from './firstnames.json';
     import lastNames from './lastnames.json';
 
+
     import winSoundFile from './assets/win.mp3';
-    const winSound = new Audio(winSoundFile);
-    winSound.preload = 'auto';
+    let audioContext;
+    let winSoundBuffer = null;
+    let gainNode;
 
     let sceneryEmojis = ["🌳", "🌲", "🎄", "🌴", "⛩️", "🗿", "🗼", "🎡", "⛲️", "🌳", "🌲", "🌴", "🌳", "🌲", "🌴", "🌵", "🌵", "🏕️", "🌾"];
     let buildingEmojis = ["🏠", "🏡", "🏰", "🛕", "🏩", "🕍", "🏚️", "🏢", "🏬", "🏛️", "🏥", "💒", "🏦", "🏟️", "🏫", "🏯", "🏣", "🏪", "🏤", "🏠", "🎪", "🛖", "🏗️", "🏘️", "⛪️", "🏨", "🏭"];
@@ -70,34 +72,22 @@
 
     let audioPreloaded = false;
 
-    function preloadAudio() {
-        return new Promise((resolve, reject) => {
-            console.log('Loading audio from:', winSoundFile);
-            if (audioPreloaded) {
-                resolve();
-                return;
-            }
-
-            winSound.oncanplaythrough = () => {
-                console.log('Audio loaded successfully');
-                audioPreloaded = true;
-                resolve();
-            };
-
-            winSound.onerror = (e) => {
-                console.error('Audio loading error:', e);
-                console.log('Attempted audio path:', winSoundFile);
-                reject(e);
-            };
-
-            try {
-                winSound.load();
-            } catch (err) {
-                // Some environments may throw when loading media without user interaction.
-                console.warn('winSound.load() failed:', err);
-                reject(err);
-            }
-        });
+    async function preloadAudio() {
+        if (audioPreloaded) return;
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window['webkitAudioContext'])();
+        }
+        try {
+            const response = await fetch(winSoundFile);
+            const arrayBuffer = await response.arrayBuffer();
+            winSoundBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            gainNode = audioContext.createGain();
+            gainNode.gain.value = 1;
+            audioPreloaded = true;
+        } catch (e) {
+            console.error('Web Audio preload failed:', e);
+            throw e;
+        }
     }
 
     function centerEmojiDistribution(backgroundEmojis, peopleOnScreen) {
@@ -377,23 +367,30 @@
                 scoreAnimating = false;
             }, 800); // Animation duration
             
-            // Try to unlock audio context if needed (some browsers require this)
+            // Play win sound using Web Audio API
             const playFanfare = async () => {
                 try {
-                    // Reset the audio to start from beginning
-                    winSound.currentTime = 0;
-                    // Ensure audio is unmuted and at normal volume
-                    winSound.muted = false;
-                    if (typeof winSound.volume === 'number') {
-                        winSound.volume = 1;
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window['webkitAudioContext'])();
                     }
-                    // Play the fanfare
-                    await winSound.play();
+                    if (!winSoundBuffer) {
+                        await preloadAudio();
+                    }
+                    // Resume context if suspended (required by some browsers)
+                    if (audioContext.state === 'suspended') {
+                        await audioContext.resume();
+                    }
+                    const source = audioContext.createBufferSource();
+                    source.buffer = winSoundBuffer;
+                    // Connect gain node for volume control
+                    source.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    gainNode.gain.value = 1;
+                    source.start(0);
                 } catch (error) {
-                    console.error('Error playing fanfare:', error);
+                    console.error('Error playing fanfare (Web Audio):', error);
                 }
             };
-            
             playFanfare();
         } else {
             // Wrong person clicked - add to wrong clicks set for visual feedback
